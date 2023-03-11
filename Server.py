@@ -1,69 +1,125 @@
-import mysql.connector
-import hashlib
 import socket
 import threading
-import rsa
 
-import pyotp
-totp = pyotp.TOTP("JBSWY3DPEHPK3PXP")
+class Server:
+    def __init__(self):
+        self.host = "127.0.0.1"
+        self.port = 8080
+        self.socket = None
+        self.conn = None
+        self.receive_thread = None
 
-print("Current OTP:", totp.now())
-public_key, private_key = rsa.newkeys(1024)
-public_partner = None
+    
+    def listen(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.bind((self.host, self.port))
+        self.sock.listen()
+        print(f"server is listening on {self.host}:{self.port}")
+              
+        while True:
+            self.conn, addr = self.sock.accept()
+            print(f"Connected to {addr[0]}:{addr[1]}")
+            
+            self.receive_thread = threading.Thread(target=self.receive)
+            self.receive_thread.start()
+            
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(("192.168.0.227", 9992))
+            
+    def receive(self):     
+        while True:
+            data = self.receive_data()
+            if not data:
+                break
+            print(f"Received message from client: {data}")
+            self.send_data(data.upper())
 
+
+    def send_data(self, data):
+        if self.conn is not None:
+            self.conn.send(data.encode())
+            
+            
+    def receive_data(self):
+        if self.conn is not None:
+            data = self.conn.recv(1024).decode()
+            return data
+        
+    def close(self):
+        self.sock.close()
+        
+        
+        
+server = Server()
 server.listen()
+message = server.recieve_data()
+print(message)
 
+server.send_data("Hello_world")
 
-
-
-def handle_connection(c):
-    
-    client.send(public_key.save_pkcs1("PEM"))
-    public_partner = rsa.PublicKey.load_pkcs1(client.recv(1024))
-    print(public_key)
-    
-    c.send(rsa.encrypt("Username".encode(), public_partner))
-    
-    print("test1")
-    username = rsa.decrypt(c.recv(1024), private_key).decode()
-    print("test2")
-
-    c.send(rsa.encrypt("Password".encode(),public_partner))
-    password = rsa.decrypt(c.recv(1024), private_key)
-    password = hashlib.sha256(password).hexdigest()
-    print("after first mesages")
-    
-    conn = mysql.connector.connect(
-    host="localhost",
-    user="jakub",
-    password="password",
-    database="mydatabase"
-)
-    
-    cur = conn.cursor()
-    
-    cur.execute("SELECT * FROM customers WHERE name = %s AND address = %s", (username, password))
-    
-    if cur.fetchall():
-        c.send(rsa.encrypt("login successful".encode(),public_partner))
-        c.send(rsa.encrypt("you got into the database great".encode(),public_partner))
-        
-        cur.execute("SELECT * FROM passwords")
-
-        myresult = cur.fetchall()
-
-        for x in myresult:
-            #c.send(rsa.encrypt(x,public_partner))
-            print(x)
-
-    else:
-        c.send("login failed".encode())    
-        
-        
-        
 while True:
-    client, addr = server.accept()
-    threading.Thread(target=handle_connection, args=(client,)).start()
+    message = input("Enter a message to send to the server: ")
+    server.send_data(message)   
+
+
+
+# HEADER = 64
+# FORMAT = 'utf-8'
+# HOST = '192.168.1.222'
+# PORT =  9090
+# DISCONECT = "disconect"
+
+# #just for accepting conecitons
+# server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# server.bind((HOST, PORT))
+
+# # while True:
+# #     comunication_socket, address = server.accept()
+# #     print(f"Connecting to {address}")
+# #     message = comunication_socket.recv(1024).decode('utf-8')
+# #     print(f"mesage from client {message}")
+# #     comunication_socket.send(f"Connecting to {address}, {message}, wowowowo".encode('utf-8'))
+# #     comunication_socket.close()
+# #     print("conection ended")
+    
+
+# def handle_client(conn, addr):
+#     print(f"Connecting to {addr}")
+#     connected = True
+#     while connected:
+#         msg_length = conn.recv(HEADER).decode(FORMAT)
+#         if msg_length:
+#             msg_length = int(msg_length)
+#             msg = conn.recv(msg_length).decode(FORMAT)
+#             if msg == DISCONECT:
+#                 connected = False
+#             print(f"[{addr}],{msg}")
+#     conn.close()
+        
+#         # print(f"Connecting to {address}")
+#         # message = comunication_socket.recv(1024).decode('utf-8')
+#         # print(f"mesage from client {message}")
+#         # comunication_socket.send(f"Connecting to {address}, {message}, wowowowo".encode('utf-8'))
+#         # comunication_socket.close()
+#         # print("conection ended")
+    
+#     pass
+# def start():
+
+#     server.listen()
+#     print(f"listening on {HOST}")
+#     while True:
+#         comunication_socket, address = server.accept()
+#         thread = threading.Thread(target=handle_client, args=(comunication_socket, address))
+#         thread.start()
+#         print(f"active connections: {threading.activeCount() -1}")
+
+# print("server is starting ...")
+# start()
+
+        # print(f"listening on {HOST}")
+        # while True:
+        # comunication_socket, address = server.accept()
+        # thread = threading.Thread(target=handle_client, args=(comunication_socket, address))
+        # thread.start()
+        # print(f"active connections: {threading.activeCount() -1}")
+        
