@@ -1,0 +1,31 @@
+{
+  "User": "Asszonyij",
+  "LastAccesed": "2023-03-12T14:42:13.681Z",
+  "DateSent": "2023-03-12T14:42:13.681Z",
+  "SomeKeys": "blabla",
+  "CanEdit": false,
+  "recoveryContact": {
+    "name": "Jane Doe",
+    "phone": "888-555-1212",
+    "Username": "janca",
+    "canAccess": true
+  },
+  "passwords": [
+    {
+      "title": "Facebook",
+      "id": 1,
+      "username": "John Doe",
+      "password": "blabla",
+      "source": "www.facebook.com"
+    },
+    {
+      "title": "Google",
+      "id": 2,
+      "username": "kuba",
+      "password": "123456789",
+      "source": "www.google.com"
+    }
+  ]
+}
+
+
