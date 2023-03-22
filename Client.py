@@ -17,6 +17,7 @@ class Client:
         self.sock = None
         self.json_data = None
         self.ECDH_key = None
+        self.AES_key = b"696d8716547961c3ae99f8da734250c8"
 
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -76,23 +77,24 @@ if __name__ == '__main__':
     client = Client()
     client.connect()
 
-    client.send_data_AES("hello")
+    ### pokud to jsou jen klasicka data ale v sifrovane komunikace
+    #json_data = client.receive_data_AES()
 
+    #### pokud jsou sifrovana data a i v sifrovane v komunikaci
     json_data = client.receive_data_AES()
+    json_data = test_AES.decrypt(json_data, client.AES_key)
     client.add_to_json_data(json_data)
     try:
-        while True:
-            krypi = KryPiShell()
-            krypi.add_data(json_data)
-            krypi.cmdloop()   
-            data = krypi.retrieve_data()
-            
-            client.send_data(json.dumps(data)) 
-            if input("Press"):
-                break 
+        krypi = KryPiShell()
+        krypi.add_data(json_data)
+        krypi.cmdloop()
+        data = krypi.retrieve_data()
+
+        client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))
+
     except KeyboardInterrupt:
         data = krypi.retrieve_data() 
-        client.send_data(json.dumps(data))
+        client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))
         print("Exiting....")
 
 
