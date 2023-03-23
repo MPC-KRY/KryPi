@@ -1,6 +1,7 @@
 import binascii
 import json
 import socket
+import NetworkUtils
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -27,24 +28,25 @@ class Server:
 
     def send_data(self, data):
         if self.conn is not None:
-            self.conn.send(data)
+            NetworkUtils.send_row(self.conn, data)
 
     def send_data_AES(self, data):
         if self.conn is not None:
             data = test_AES.encrypt(data, self.ECDH_key)
-            self.conn.send(data.encode())
-            
+            NetworkUtils.send_row(self.conn, data.encode())
+
     def receive_data(self):
         if self.conn is not None:
-            data = self.conn.recv(1024)
+            data = NetworkUtils.recv_row(self.conn)
             return data
 
     def receive_data_AES(self):
         if self.conn is not None:
-            data = self.conn.recv(1024)
+            data = NetworkUtils.recv_row(self.conn)
             if len(data) != 0:
+                print(data)
                 return test_AES.decrypt(data.decode(), self.ECDH_key)
-        
+
     def close(self):
         self.sock.close()
 
@@ -76,12 +78,11 @@ server.listen()
 server.countDH()
 
 
-
-
 def read_json_data(file_path):
     with open(file_path, 'r') as f:
         json_data = json.load(f)
     return json_data
+
 
 with open('myfile.txt', 'r') as file:
     message = file.read()
@@ -93,7 +94,9 @@ server.send_data_AES(message)
 
 while True:
     message = server.receive_data_AES()
-    
+
     if message is not None:
         with open('myfile.txt', 'w') as file:
             file.write(message)
+            file.close()
+            server.close()

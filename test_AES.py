@@ -8,6 +8,7 @@ def encrypt(message, key):
     message = message.encode('utf-8')
 
     # Pad the message to a multiple of 16 bytes
+
     padded_message = pad(message, AES.block_size)
 
     # Create a new AES cipher object with a random IV and the key
@@ -28,6 +29,7 @@ def decrypt(encrypted_message, key):
 
     # Extract the IV and encrypted message, then create a new AES cipher object with them and the key
     iv = encrypted_message[:AES.block_size]
+
     cipher = AES.new(key, AES.MODE_CBC, iv)
 
     # Decrypt the message and unpad it
@@ -36,5 +38,20 @@ def decrypt(encrypted_message, key):
 
     # Convert the decrypted message to a string and return it
     return unpadded_message.decode('utf-8')
+
+def decrypt2(encrypted_message, key):
+    # Convert the key and encrypted message to bytes
+    encrypted_message = base64.b64decode(encrypted_message)
+
+    # Extract the IV and encrypted message, then create a new AES cipher object with them and the key
+    iv = encrypted_message[:AES.block_size]
+
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+
+    # Decrypt the message and unpad it
+    decrypted_message = cipher.decrypt(encrypted_message[AES.block_size:])
+
+    # Convert the decrypted message to a string and return it
+    return decrypted_message.decode('utf-8')
 
 
