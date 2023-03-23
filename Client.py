@@ -1,6 +1,7 @@
 import socket
 import json
 from Test import KryPiShell
+import NetworkUtils
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -9,6 +10,7 @@ import binascii
 
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import test_AES
+
 
 class Client:
     def __init__(self):
@@ -31,23 +33,25 @@ class Client:
 
     def add_to_json_data(self, data):
         self.json_data = json.loads(data)
-        
+
     def send_data(self, data):
         if self.sock is not None:
-            self.sock.send(data)
+            NetworkUtils.send_row(self.sock, data)
 
     def send_data_AES(self, data):
         if self.sock is not None:
-            self.sock.send(test_AES.encrypt(data, self.ECDH_key).encode())
+            data = test_AES.encrypt(data, self.ECDH_key).encode()
+            print(data)
+            NetworkUtils.send_row(self.sock, data)
 
     def receive_data(self):
         if self.sock is not None:
-            data = self.sock.recv(1024)
+            data = NetworkUtils.recv_row(self.sock)
             return data
 
     def receive_data_AES(self):
         if self.sock is not None:
-            data = self.sock.recv(1024)
+            data = NetworkUtils.recv_row(self.sock)
             return test_AES.decrypt(data, self.ECDH_key)
 
     def countDHEC(self):
@@ -78,7 +82,7 @@ if __name__ == '__main__':
     client.connect()
 
     ### pokud to jsou jen klasicka data ale v sifrovane komunikace
-    #json_data = client.receive_data_AES()
+    # json_data = client.receive_data_AES()
 
     #### pokud jsou sifrovana data a i v sifrovane v komunikaci
     json_data = client.receive_data_AES()
@@ -90,13 +94,13 @@ if __name__ == '__main__':
         krypi.cmdloop()
         data = krypi.retrieve_data()
 
-        client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))
+        data = test_AES.encrypt(json.dumps(data), client.AES_key)
+        client.send_data_AES(data)
 
     except KeyboardInterrupt:
-        data = krypi.retrieve_data() 
+        data = krypi.retrieve_data()
         client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))
         print("Exiting....")
 
 
-            
-        
+
