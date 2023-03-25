@@ -11,12 +11,14 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True)
-    password = Column(String)
+    hash = Column(String)
+    salt = Column(String)
+    iteration = Column(Integer)
     email = Column(String)
     totp = Column(Integer)
 
     def __repr__(self):
-        return f"<User(username='{self.username}', password={self.password}, totp={self.totp}, email={self.email})>"
+        return f"<User(username='{self.username}', hash={self.hash}, totp={self.totp}, email={self.email})>"
 
 
 class Database:
@@ -48,7 +50,7 @@ class Database:
 if __name__ == "__main__":
     db = Database("example")
     print(db.get_users())
-    user = User(username='Jasdasde', password="7384783834", totp=20304, email="blahblah@boe.cz")
+    user = User(username='Jasdasde', hash="7384783834", salt="7384783834", iteration=23, totp=20304, email="blahblah@boe.cz")
     db.add_user(user)
     users = db.get_users()
     for user in users:
