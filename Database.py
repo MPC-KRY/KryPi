@@ -37,6 +37,24 @@ class Database:
             self.session.rollback()
             return False
 
+    def update_user(self, user):
+        user_db = self.get_user_by_id(user.id)
+
+        # update the user's attributes
+        user_db.username = user.username
+        user_db.hash = user.hash
+        user_db.totp = user.totp
+        user_db.email = user.email
+        user_db.salt = user.salt
+        user_db.iteration = user.iteration
+
+        self.session.commit()
+
+    def delete_user(self, user):
+        user_db = self.get_user_by_id(user.id)
+        self.session.delete(user_db)
+        self.session.commit()
+
     def get_user_by_id(self, user_id):
         return self.session.query(User).filter_by(id=user_id).first()
 
@@ -50,7 +68,11 @@ class Database:
 if __name__ == "__main__":
     db = Database("example")
     print(db.get_users())
-    user = User(username='Jasdasde', hash="7384783834", salt="7384783834", iteration=23, totp=20304, email="blahblah@boe.cz")
+    user = User(username='Jasdasde', hash="7384783834", salt="7384783834", iteration=23, totp=20304,
+                email="blahblah@boe.cz")
+    db.add_user(user)
+    user = User(username='Jasdasdebbbb', hash="738478383904", salt="7388774783834", iteration=54, totp=356765,
+                email="blahblah@boehhuhuhu.cz")
     db.add_user(user)
     users = db.get_users()
     for user in users:
@@ -59,3 +81,22 @@ if __name__ == "__main__":
     print("blah blah")
     print(db.get_user_by_id(1))
     print(db.get_user_by_name("Jasdasde"))
+
+    user = db.get_user_by_id(1)
+    user.hash = "1111111"
+    db.update_user(user)
+
+    print(db.get_user_by_id(1))
+
+    print(db.get_users())
+
+
+    print("deleting user")
+
+    user = db.get_user_by_id(1)
+    db.delete_user(user)
+    print(db.get_users())
+    print(db.get_user_by_id(1))
+
+
+
