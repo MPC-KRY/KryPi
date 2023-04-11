@@ -3,12 +3,14 @@ from Crypto.Util.Padding import pad, unpad
 import base64
 
 
-def encrypt(message, key):
+def encrypt(message, key, tur=True):
     # Convert the key and message to bytes
-    message = message.encode('utf-8')
+    if tur == True:
+        message = message.encode('utf-8')
+    else:
+        message = message
 
     # Pad the message to a multiple of 16 bytes
-
     padded_message = pad(message, AES.block_size)
 
     # Create a new AES cipher object with a random IV and the key
@@ -20,10 +22,33 @@ def encrypt(message, key):
 
     # Combine the IV and encrypted message, then convert to base64 and return as a string
     combined_message = iv + encrypted_message
-    return base64.b64encode(combined_message).decode('utf-8')
+    if tur == True:
+        return base64.b64encode(combined_message).decode('utf-8')
+    else:
+        return base64.b64encode(combined_message)
+    
+def encrypt2(message, key):
+    # Convert the key and message to bytes
+    message = message
+
+    # Pad the message to a multiple of 16 bytes
+    padded_message = pad(message, AES.block_size)
+
+    # Create a new AES cipher object with a random IV and the key
+    iv = AES.new(key, AES.MODE_CBC).iv
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+
+    # Encrypt the padded message
+    encrypted_message = cipher.encrypt(padded_message)
+
+    # Combine the IV and encrypted message, then convert to base64 and return as a string
+    combined_message = iv + encrypted_message
+
+    return base64.b64encode(combined_message)
 
 
-def decrypt(encrypted_message, key):
+
+def decrypt(encrypted_message, key, tur=True):
     # Convert the key and encrypted message to bytes
     encrypted_message = base64.b64decode(encrypted_message)
 
@@ -37,7 +62,10 @@ def decrypt(encrypted_message, key):
     unpadded_message = unpad(decrypted_message, AES.block_size)
 
     # Convert the decrypted message to a string and return it
-    return unpadded_message.decode('utf-8')
+    if tur:
+        return unpadded_message.decode('utf-8')
+    else:
+        return unpadded_message
 
 def decrypt2(encrypted_message, key):
     # Convert the key and encrypted message to bytes

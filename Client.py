@@ -1,6 +1,7 @@
 import socket
 import json
 from Test import KryPiShell
+from Client_ReadFace import FaceCapturer
 import NetworkUtils
 
 from cryptography.hazmat.primitives import hashes, serialization
@@ -10,6 +11,7 @@ import binascii
 
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import test_AES
+import Client_DetectFace
 
 
 class Client:
@@ -26,7 +28,7 @@ class Client:
         self.sock.connect((self.host, self.port))
         print(f"connected to {self.host}:{self.port}")
 
-        client.countDHEC()
+        self.countDHEC()
 
     def close(self):
         self.sock.close()
@@ -41,7 +43,12 @@ class Client:
     def send_data_AES(self, data):
         if self.sock is not None:
             data = test_AES.encrypt(data, self.ECDH_key).encode()
-            print(data)
+            NetworkUtils.send_row(self.sock, data)
+
+
+    def send_pictures_AES(self,data):
+        if self.sock is not None:
+            data = test_AES.encrypt2(data, self.ECDH_key)
             NetworkUtils.send_row(self.sock, data)
 
     def receive_data(self):
@@ -62,7 +69,7 @@ class Client:
             encoding=serialization.Encoding.DER,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        client.send_data(Alice_public_key_bytes)
+        self.send_data(Alice_public_key_bytes)
 
         # accepts the client's public key in bytes and convert it to public key object
         Bob_public_key_bytes = self.receive_data()
@@ -76,26 +83,27 @@ class Client:
         self.ECDH_key = binascii.b2a_hex(Alice_derived_key)[:32]
         print("\nBob's derived key: ", binascii.b2a_hex(Alice_derived_key).decode())
 
-
 if __name__ == '__main__':
     client = Client()
     client.connect()
 
-    ### pokud to jsou jen klasicka data ale v sifrovane komunikace
-    # json_data = client.receive_data_AES()
-
-    #### pokud jsou sifrovana data a i v sifrovane v komunikaci
     json_data = client.receive_data_AES()
     json_data = test_AES.decrypt(json_data, client.AES_key)
     client.add_to_json_data(json_data)
     try:
-        krypi = KryPiShell()
-        krypi.add_data(json_data)
-        krypi.cmdloop()
-        data = krypi.retrieve_data()
+        
+        #send_picture_data()
+        choice = input("choose")
+        if choice == "1":   
+            pass
+        else:
+            krypi = KryPiShell()
+            krypi.add_data(json_data)
+            krypi.cmdloop()
+            data = krypi.retrieve_data()
 
-        data = test_AES.encrypt(json.dumps(data), client.AES_key)
-        client.send_data_AES(data)
+            data = test_AES.encrypt(json.dumps(data), client.AES_key)
+            client.send_data_AES(data)
 
     except KeyboardInterrupt:
         data = krypi.retrieve_data()

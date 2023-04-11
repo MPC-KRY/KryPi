@@ -8,6 +8,15 @@ import secrets
 import string
 import pyperclip
 
+def is_authorized(func):
+    def wrapper(self, line):
+        if self.is_authenticated:
+            return func(self, line)
+        else:
+            print("You are not authorized to execute this command.")
+    return wrapper
+
+
 
 class KryPiShell(cmd.Cmd):
     intro = "Welcome to KryPi. Type 'help' for a list of commands.\n"
@@ -16,6 +25,16 @@ class KryPiShell(cmd.Cmd):
     json_data = None
     IDs = []
     Titles = []
+    is_authenticated = False
+
+    def do_login(self,arg):
+        passs = input("Input password")
+        if passs == "1":
+            self.is_authenticated = True
+        else:
+            self.is_authenticated = False
+
+
     
     def add_data(self,data):
         self.json_data = json.loads(data)
@@ -38,6 +57,7 @@ class KryPiShell(cmd.Cmd):
         
         
 ###             ADD  #################################################
+    @is_authorized
     def do_add(self, arg):
         """Get a password entry
         add [title]"""
@@ -119,6 +139,7 @@ class KryPiShell(cmd.Cmd):
             
             
 ###             SHOW  #################################################
+    
     def do_show(self, arg):
         """Get a password entry
             get [id] or get [title]
@@ -218,23 +239,23 @@ class KryPiShell(cmd.Cmd):
                             password = "".join([i for i in data if "Password: " in i]).replace("\n", " ").replace(" ", "").partition("Password:")[2]
                             source = "".join([i for i in data if "Source: " in i]).replace("\n", " ").replace(" ", "").partition("Source:")[2]
 
-                    for passwords in self.json_data["passwords"]:
-                        if passwords['id'] == id:
-                            if username != "":  passwords['username'] = username
-                            if password != "":  passwords['password'] = password
-                            if source != "":    passwords['source'] = source
+                        for passwords in self.json_data["passwords"]:
+                            if passwords['id'] == id:
+                                if username != "":  passwords['username'] = username
+                                if password != "":  passwords['password'] = password
+                                if source != "":    passwords['source'] = source
 
             except ValueError:
-                for i in self.json_data["passwords"]:
-                    if i["title"] == arg:   
-                        print(f"""
-                        --------------------------------
-                        Title: {i["title"]}
-                        Username: {i["username"]}
-                        Source: {i["source"]}
-                        Password: {i["password"]}
-                        -------------------------------- """)
                 if choice.lower() == "l":
+                    for i in self.json_data["passwords"]:
+                        if i["title"] == arg:   
+                            print(f"""
+                            --------------------------------
+                            Title: {i["title"]}
+                            Username: {i["username"]}
+                            Source: {i["source"]}
+                            Password: *************
+                            -------------------------------- """)
                     username = input("Username: ")
                     password = getpass("Password: ")
                     source = input("Source: ")
