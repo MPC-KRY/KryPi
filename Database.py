@@ -16,6 +16,7 @@ class User(Base):
     iteration = Column(Integer)
     email = Column(String)
     totp = Column(Integer)
+    data = Column(String)
 
     def __repr__(self):
         return f"<User(username='{self.username}', hash={self.hash}, totp={self.totp}, email={self.email})>"
@@ -84,6 +85,8 @@ if __name__ == "__main__":
 
     user = db.get_user_by_id(1)
     user.hash = "1111111"
+    user.totp = 4206969
+    user.data = "testData"
     db.update_user(user)
 
     print(db.get_user_by_id(1))
@@ -94,7 +97,8 @@ if __name__ == "__main__":
     print("deleting user")
 
     user = db.get_user_by_id(1)
-    db.delete_user(user)
+    print("toto jsou data", user.data)
+    # db.delete_user(user)
     print(db.get_users())
     print(db.get_user_by_id(1))
 
