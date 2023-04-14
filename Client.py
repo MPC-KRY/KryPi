@@ -11,7 +11,11 @@ import binascii
 
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import test_AES
+import CA
 import Client_DetectFace
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
 
 
 class Client:
@@ -28,7 +32,12 @@ class Client:
         self.sock.connect((self.host, self.port))
         print(f"connected to {self.host}:{self.port}")
 
-        self.countDHEC()
+
+    def recieve_RSA(self):
+        pub_key_RSA = self.receive_data()
+        hash_RSA = self.receive_data()
+        return pub_key_RSA, hash_RSA
+    
 
     def close(self):
         self.sock.close()
@@ -61,7 +70,29 @@ class Client:
             data = NetworkUtils.recv_row(self.sock)
             return test_AES.decrypt(data, self.ECDH_key)
 
-    def countDHEC(self):
+    def verify_signature(self, data, hash, public_key_file='public_key.pem'):
+        with open("public_key.pem", 'rb') as public_key:
+            temp = public_key.read()
+            
+
+
+            temp2 = CA.VerifyingKey.from_pem(temp)
+            temp3 = temp2.verify(hash, data)
+            return temp3
+
+
+    def encrypt_RSA(self, key):
+        pass
+
+
+
+    def countDHEC(self, pub_key_server, priv_key_client):
+        cipher_server = PKCS1_OAEP.new(pub_key_server)
+        cipher_client = PKCS1_OAEP.new(priv_key_client)
+
+
+
+
 
         # generate private key and converts the ECDH public key to bytes and sends it to the client
         Alice_private_key = ec.generate_private_key(ec.SECP384R1())
@@ -69,10 +100,10 @@ class Client:
             encoding=serialization.Encoding.DER,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        self.send_data(Alice_public_key_bytes)
+        self.send_data(cipher_server.encrypt(Alice_public_key_bytes))
 
         # accepts the client's public key in bytes and convert it to public key object
-        Bob_public_key_bytes = self.receive_data()
+        Bob_public_key_bytes = cipher_client.decrypt(self.receive_data())
         Bob_public_key = load_der_public_key(Bob_public_key_bytes)
 
         # calculates the secret key
@@ -83,9 +114,17 @@ class Client:
         self.ECDH_key = binascii.b2a_hex(Alice_derived_key)[:32]
         print("\nBob's derived key: ", binascii.b2a_hex(Alice_derived_key).decode())
 
+
+    def gen_RSA(self):
+        rsa_keys = RSA.generate(2048)
+        return rsa_keys
+
+
+
 if __name__ == '__main__':
     client = Client()
     client.connect()
+
 
     json_data = client.receive_data_AES()
     json_data = test_AES.decrypt(json_data, client.AES_key)

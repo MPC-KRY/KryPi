@@ -23,6 +23,11 @@ import pyotp
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA256
 import random
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
+# generate a new RSA key pair
+
 
 
 
@@ -34,6 +39,9 @@ class Server:
         self.socket = None
         self.conn = None
         self.ECDH_key = None
+        self.rsa_private_key = None
+        self.rsa_public_key = None
+        self.rsa_hash_sig_key = None
 
     def listen(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,10 +78,37 @@ class Server:
     def close(self):
         self.sock.close()
 
-    def countDH(self):
+
+
+    def import_RSA(self):
+        with open("private_key_RSA.pem", 'rb') as private_key_file:
+            self.rsa_private_key = RSA.importKey(private_key_file.read())
+
+        with open("public_key_RSA.pem", 'rb') as public_key_file:
+            self.rsa_public_key = public_key_file.read()
+
+        with open("hash.sig", 'rb') as hash_file:
+            self.rsa_hash_sig_key = hash_file.read()
+
+
+    def send_keys_RSA(self):
+        self.send_data(self.rsa_public_key)
+        self.send_data(self.rsa_hash_sig_key)
+
+
+
+    def decrypt_RSA(self,data):
+        return self.rsa_private_key.decrypt(data)
+
+
+
+    def countDH(self, pub_key_client, priv_key_server):
+        cipher_server = PKCS1_OAEP.new(priv_key_server)
+        cipher_client = PKCS1_OAEP.new(pub_key_client)
+
 
         # accepts the client's public key and creates its own private key
-        Alice_public_key_bytes = self.receive_data()
+        Alice_public_key_bytes = cipher_server.decrypt(self.receive_data())
         Bob_private_key = ec.generate_private_key(ec.SECP384R1())
 
         # converts the ECDH public key to bytes and sends it to the client
@@ -81,7 +116,8 @@ class Server:
             encoding=serialization.Encoding.DER,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        self.send_data(Bob_public_key_bytes)
+        temp = cipher_client.encrypt(Bob_public_key_bytes)
+        self.send_data(temp)
 
         # calculates the secret key
         Alice_public_key = load_der_public_key(Alice_public_key_bytes)
@@ -258,7 +294,24 @@ if __name__ == '__main__':
 
     server = Server()
     server.listen()
-    server.countDH()
+    server.import_RSA()
+    server.send_keys_RSA()
+
+
+    public_key_client_RSA = server.receive_data()
+    cipher = PKCS1_OAEP.new(server.rsa_private_key)
+
+    chunk_size = 256 # maximum length of ciphertext that can be decrypted is 256 bytes
+    plaintext = b''
+    for i in range(0, len(public_key_client_RSA), chunk_size):
+        chunk = public_key_client_RSA[i:i+chunk_size]
+        plaintext += cipher.decrypt(chunk)
+
+    public_client_RSA = RSA.importKey(plaintext)
+
+
+
+    server.countDH(public_client_RSA,server.rsa_private_key)
     database = Database("example")
 
     #register
@@ -268,7 +321,25 @@ if __name__ == '__main__':
     # database.add_user(user)
     # passGen(username,password)
 
+    database.delete_user("Jasdasde")
+    database.delete_user("Jasdasdebbbb")
+    database.delete_user("Jakub")
+    database.delete_user("Matej")
+    database.delete_user("Vojtisek")
+    database.delete_user("Michal")
+    database.delete_user("Bla")
+    database.delete_user("bla")
+    database.delete_user("hovno")
 
+
+    
+
+
+    data = "HbZErx23LSBWLkXJIPxGVq+dr4OmTx6p5MUO///cDXw4v+D/kpIl+gW1RhxBFpCXfICA1Vdv13QmoDy2UT/fVY0B0GzACy/gmf5GNTX1uQks9hRflnlSrWS7Qasw0gVY1njiognDHRNOcDEFss2I9kP6B3NAhFYN+oHc8P9R+z6g6i33/hiWAdXp8vOXmXRwpqxef3blNqDhf2AglLxUP0PFnYPoipXQvDuoS3lAcqOIiEd+s+5FmE6Eyq+6uADRzOV3Cp+WtqUbENkKNHCeKugNqXBhYXzPmO+JTq89K331djfjjhx5XFyn20D9/f+Coe9Ap4ZnCQk718B3q3tvclpqRekRmUHr8q+cesaZ5ILyztRVX+L3YykZAYQ1OI6sVt9i+4mHq5uzLYyzTnDycHHEWZu4PMEDe6dl9W0IWzfm/F6FV+iNUaRDvm50Z8EPfRPeE8XXkSrTc+M7cZVeUwUVHrSGSgWBPn3JrFh1kx/+y2SCOLd4egT29aQxA8uXhcrGk8WAl1Gb915eSDVGKKNJHgVziuBT6BA9df/AwQ8w7Ta+4iNBR6oAZWjDLpQtHw7jWx2AlbJ1CXhy5lmQuL7lz43/Zuesta3Gnoou8VMDAHDMuN8hcpFmNCCsNfQRkiBMt2jnibPqMHV1xdpIOda329ZvmtINKDATf+tEmna9g1gFKBt2LOUWncTjU0s67peIAKMC+PnoCnoKB73wm7cD29ePa5yri3515tVTRWHPC0iVRxLORNE2/tJICRcBCwf/sVFtu8S2iWLUfhgfBLVns40oX2R9aGjmhUpNXW/wgw5S1OS2UPMG6fJOsvEPKuZgs7SP+bFiLg9qSW4xM+Kll1/Wp6mdpaukJJISwiHOtV/R5MyM76CO1GFr+b7YqAeCvThc2eNym1cm0Sk87iwvkP6WCf+1+vhqXT+yMnnf6zoNr7x6zQjqAokv52OgZGmbBXkBOuWy9W21Dldn7jiaJQohjInKqU4Vd8UHVAXofTMdjmq0Iij5WWsjGhV/"
+    user = database.get_user_by_name("ahoj")
+    user.data = data
+    database.update_user(user)
+    
     #verify
     # username1 = input("username: ")
     # password1 = input("password: ")
@@ -285,11 +356,6 @@ if __name__ == '__main__':
         authorized,username = DefaultLogin()
     elif isinstance(message,str) and "<REGISTRATION>" in message:
         create_user()
-
-
-    
-
-
 
 
 

@@ -5,6 +5,10 @@ from Test import KryPiShell
 import test_AES
 import json
 import getpass
+import CA
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
 
 
 
@@ -95,11 +99,9 @@ def DefaultLogin():
         return False
 
 
-
 def Select():
     while True:
         print("""
-
             1. Face authentication (only working)
             2. Name and Password + TOTP
             3.registration
@@ -139,6 +141,28 @@ if __name__ == '__main__':
     try:
         client = Client.Client()
         client.connect()
+        key, hash = client.recieve_RSA()
+        verified = client.verify_signature(key,hash)
+        if verified:
+            client_RSA_key = client.gen_RSA()
+            public_RSA_server_key = RSA.importKey(key)
+            cipher = PKCS1_OAEP.new(public_RSA_server_key)
+            temp = client_RSA_key.public_key().exportKey()
+
+
+# TODO rozdeleni na chunky
+            chunk_size = 190 # maximum length of plaintext that can be encrypted is 214 bytes
+            ciphertext = b''
+            for i in range(0, len(temp), chunk_size):
+                chunk = temp[i:i+chunk_size]
+                ciphertext += cipher.encrypt(chunk)
+            client.send_data(ciphertext)
+
+
+
+
+
+        client.countDHEC(public_RSA_server_key,client_RSA_key)
         authorized = Select()
         authentication = True
         #if authentiation was succesfull
