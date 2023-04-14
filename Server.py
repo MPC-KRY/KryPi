@@ -171,12 +171,14 @@ def DefaultLogin():
     print(username, password)
     user = database.get_user_by_name(username)
     hash = user.hash
-    if hash == password:
+
+    if verify_password(username, password):
         print("ses tam Heslo")
         #koukne do DB jaky metody ma
         face,totp = True,True
         server.send_data_AES(f"{face}<>{totp}")
-    else:  server.send_data_AES("Wrong password")
+    else:  
+        server.send_data_AES("Wrong password")
     
     choice = int(server.receive_data_AES(True))
     #FACE
@@ -226,6 +228,30 @@ def verify_password(user, password):
     return user.hash == key
 
 
+def create_user():
+    username, password,email = server.receive_data_AES(True).split("<>")
+    user = database.get_user_by_name(username)
+    if user is None:
+        user = User(username=username, email=email)
+        database.add_user(user)
+        passGen(username,password)
+        server.send_data_AES("User Created")
+        create_TOTP(username)
+    else:
+        print("user exists")
+        server.send_data_AES("User NOT Created")
+
+
+def create_TOTP(username):
+    alphabet = string.ascii_letters + string.digits
+    totp_seed = ''.join(random.choice(alphabet) for i in range(16))
+    user = database.get_user_by_name(username)
+    user.totp = totp_seed
+    database.update_user(user)
+    print(totp_seed)
+
+
+
 
 
 if __name__ == '__main__':
@@ -236,29 +262,32 @@ if __name__ == '__main__':
     database = Database("example")
 
     #register
-    username = input("username: ")
-    password = input("password: ")
-    user = User(username=username)
-    database.add_user(user)
-    passGen(username,password)
+    # username = input("username: ")
+    # password = input("password: ")
+    # user = User(username=username)
+    # database.add_user(user)
+    # passGen(username,password)
 
 
     #verify
-    username1 = input("username: ")
-    password1 = input("password: ")
-    isverified = verify_password(username1,password1)
-    print(isverified)
+    # username1 = input("username: ")
+    # password1 = input("password: ")
+    # isverified = verify_password(username1,password1)
+    # print(isverified)
 
 
 
 
+    authorized = False
     #SWITCH 
     message = server.receive_data_AES(True)
     if isinstance(message,str) and "<DEFAULTLOGIN>" in message:
-        authorized,username =DefaultLogin()
+        authorized,username = DefaultLogin()
+    elif isinstance(message,str) and "<REGISTRATION>" in message:
+        create_user()
+
 
     
-
 
 
 

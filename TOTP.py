@@ -7,7 +7,7 @@ def totp_generate_qrcode(key, name):
     qrcode_terminal.draw(qr_text)
 
 
-key = "JBSWY3DPEHPK3PXP"
+key = "tBMrJrDKlChPJ3pY"
 totp = pyotp.TOTP(key)
 
 totp_generate_qrcode(key, "xhynek11")

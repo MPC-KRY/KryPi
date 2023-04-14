@@ -45,7 +45,19 @@ def Face_login():
 
 
 def Register():
-    Face_Registration()
+    #Face_Registration()
+    client.send_data_AES("<REGISTRATION>")
+    username = input("Enter username:")
+    password = input("Enter password:")
+    e_mail = input("Enter email:")
+    client.send_data_AES(f"{username}<>{password}<>{e_mail}")
+
+    message = client.receive_data_AES()
+    print(message)
+
+
+    pass
+
 
 def Login():
     pass
@@ -84,38 +96,14 @@ def DefaultLogin():
 
 
 
-
-
-
-
-    
-
-
-
-
-
-
-
-    
-
-
-
-
 def Select():
-
     while True:
         print("""
-            Welcome to out Cryptography project.
-            This is Login page, where you have to authorize to access your
-            saved entries
-            Or you can recover your password
 
-            Available logins
             1. Face authentication (only working)
             2. Name and Password + TOTP
-            3. Name and Password + Face authentication
+            3.registration
             4. 
-            Login or Recover password (here will be choice)
         """)
         register = input("Select type of login authentication: ")
         if register == "1":
@@ -124,10 +112,10 @@ def Select():
             Face_login()
             break
         elif register == "2":
-            print("Name and password authentication")
+            print("TOTP authentication")
             authorized = DefaultLogin()
         elif register == "3":
-            print("FaceLogin registration")
+            print("user registration registration")
             Register()
             print("registration complete")
             break
@@ -147,7 +135,7 @@ if __name__ == '__main__':
     print("| 1. Login                              |")
     print("| 2. Password recovery                  |")
     print("-----------------------------------------")
-    option = input("Enter your choice (1/2): ")
+    #option = input("Enter your choice (1/2): ")
     try:
         client = Client.Client()
         client.connect()
