@@ -50,9 +50,50 @@ def Register():
 def Login():
     pass
 
-def DefaulLogin():
+def DefaultLogin():
     user = input("username")
     pasw = input("password")
+    client.send_data_AES("<DEFAULTLOGIN>")
+    client.send_data_AES(f"{user}<>{pasw}")
+    try:
+        face,totp = client.receive_data_AES().split("<>")
+
+        face = True if face == "True" else False
+        totp = True if totp == "True" else False
+    except:
+        message = client.receive_data_AES()
+        print(message)
+
+    if face:
+        print("je tam oblicej")
+    if totp:
+        print("je tam totp")
+        choice = input("choose authentication type 1. face, 2.totp")
+
+    client.send_data_AES(choice)
+        
+    if int(choice) == 2:
+        totp_code = input("insert TOTP code")
+        client.send_data_AES(totp_code)
+
+    message = client.receive_data_AES()
+    if isinstance(message,str) and "<AUTHORIZED>" in message:
+        return True
+    else: 
+        return False
+
+
+
+
+
+
+
+    
+
+
+
+
+
 
 
     
@@ -84,8 +125,7 @@ def Select():
             break
         elif register == "2":
             print("Name and password authentication")
-            DefaultLogin()
-            break
+            authorized = DefaultLogin()
         elif register == "3":
             print("FaceLogin registration")
             Register()
@@ -93,6 +133,7 @@ def Select():
             break
         else:
             print("not correct choice")
+        return authorized
 
 
 
@@ -110,10 +151,10 @@ if __name__ == '__main__':
     try:
         client = Client.Client()
         client.connect()
-        Select()
+        authorized = Select()
         authentication = True
         #if authentiation was succesfull
-        if authentication == True:
+        if authorized == True:
             json_data = client.receive_data_AES()
             json_data = test_AES.decrypt(json_data, client.AES_key)
             client.add_to_json_data(json_data)
@@ -125,6 +166,8 @@ if __name__ == '__main__':
             data = test_AES.encrypt(json.dumps(data), client.AES_key)
             print(data)
             client.send_data_AES(data)
+        else:
+            print("now authorized")
 
     except KeyboardInterrupt:
             data = krypi.retrieve_data()

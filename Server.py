@@ -19,6 +19,8 @@ import csv
 import Server_DetectFace
 from Database import Database
 from Database import User
+import pyotp
+
 
 
 
@@ -162,36 +164,79 @@ def Detect_Faces():
     
 
 
+def DefaultLogin():
+    username, password = server.receive_data_AES(True).split("<>")
+    print(username, password)
+    user = database.get_user_by_name(username)
+    hash = user.hash
+    if hash == password:
+        print("ses tam Heslo")
+        #koukne do DB jaky metody ma
+        face,totp = True,True
+        server.send_data_AES(f"{face}<>{totp}")
+    else:
+        server.send_data_AES("Wrong password")
+    
+    choice = int(server.receive_data_AES(True))
+    #FACE
+    if choice == 1:
+        #FACE part
+        pass
+    #TOTP
+    elif choice == 2:
+        #TOTP part
+        totp_code = server.receive_data_AES(True)
+        totp_db = user.totp
+        totp_now = pyotp.TOTP(totp_db).now()
+        if int(totp_code) == int(totp_now):
+            print("Je to spravne TOTP")
+            server.send_data_AES("<AUTHORIZED>")
+            return True, username
+        else:
+            return False, "notauthorized"
+
+
+    
+
+
+
+    
+
+
+
+
+
 
 
 if __name__ == '__main__':
-    database = Database("example")
-    #user = database.get_user_by_name("Jakub")
-    #user.data = "HbZErx23LSBWLkXJIPxGVq+dr4OmTx6p5MUO///cDXw4v+D/kpIl+gW1RhxBFpCXfICA1Vdv13QmoDy2UT/fVY0B0GzACy/gmf5GNTX1uQks9hRflnlSrWS7Qasw0gVY1njiognDHRNOcDEFss2I9kP6B3NAhFYN+oHc8P9R+z6g6i33/hiWAdXp8vOXmXRwpqxef3blNqDhf2AglLxUP0PFnYPoipXQvDuoS3lAcqOIiEd+s+5FmE6Eyq+6uADRzOV3Cp+WtqUbENkKNHCeKugNqXBhYXzPmO+JTq89K331djfjjhx5XFyn20D9/f+Coe9Ap4ZnCQk718B3q3tvclpqRekRmUHr8q+cesaZ5ILyztRVX+L3YykZAYQ1OI6sVt9i+4mHq5uzLYyzTnDycHHEWZu4PMEDe6dl9W0IWzfm/F6FV+iNUaRDvm50Z8EPfRPeE8XXkSrTc+M7cZVeUwUVHrSGSgWBPn3JrFh1kx/+y2SCOLd4egT29aQxA8uXhcrGk8WAl1Gb915eSDVGKKNJHgVziuBT6BA9df/AwQ8w7Ta+4iNBR6oAZWjDLpQtHw7jWx2AlbJ1CXhy5lmQuL7lz43/Zuesta3Gnoou8VMDAHDMuN8hcpFmNCCsNfQRkiBMt2jnibPqMHV1xdpIOda329ZvmtINKDATf+tEmna9g1gFKBt2LOUWncTjU0s67peIAKMC+PnoCnoKB73wm7cD29ePa5yri3515tVTRWHPC0iVRxLORNE2/tJICRcBCwf/sVFtu8S2iWLUfhgfBLVns40oX2R9aGjmhUpNXW/wgw5S1OS2UPMG6fJOsvEPKuZgs7SP+bFiLg9qSW4xM+Kll1/Wp6mdpaukJJISwiHOtV/R5MyM76CO1GFr+b7YqAeCvThc2eNym1cm0Sk87iwvkP6WCf+1+vhqXT+yMnnf6zoNr7x6zQjqAokv52OgZGmbBXkBOuWy9W21Dldn7jiaJQohjInKqU4Vd8UHVAXofTMdjmq0Iij5WWsjGhV/"
-    #database.update_user(user)
-    #print(db.get_users())
-    # user = User(username='Jakub', hash="password", salt="123456", iteration=23, totp=20304,
-    #             email="jakub@boe.cz")
-    # database.add_user(user)
-    # user = User(username='Matej', hash="123456", salt="123456", iteration=54, totp=356765,
-    #             email="matej@boehhuhuhu.cz")
-    # database.add_user(user)
-    # users = database.get_users()
-    # print(users)
-
 
     server = Server()
     server.listen()
     server.countDH()
+    database = Database("example")
 
-    user = database.get_user_by_name("Jakub")
-    data = user.data
-    server.send_data_AES(data)
+    #SWITCH 
+    message = server.receive_data_AES(True)
+    if isinstance(message,str) and "<DEFAULTLOGIN>" in message:
+        authorized,username =DefaultLogin()
+
+    
+
+
+
+
+
+
+    if authorized:
+        user = database.get_user_by_name(username)
+        data = user.data
+        server.send_data_AES(data)
 
     while True:
         data = server.receive_data_AES(True)
+
         if data is not None:
-            user = database.get_user_by_name("Jakub")
+            user = database.get_user_by_name(username)
             user.data = data
             database.update_user(user)
 
