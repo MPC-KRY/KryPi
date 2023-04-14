@@ -9,6 +9,8 @@ import string
 import pyperclip
 
 def is_authorized(func):
+    """Get a password entry
+        add [title]"""
     def wrapper(self, line):
         if self.is_authenticated:
             return func(self, line)

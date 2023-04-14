@@ -19,7 +19,7 @@ class User(Base):
     data = Column(String)
 
     def __repr__(self):
-        return f"<User(username='{self.username}', hash={self.hash}, totp={self.totp}, email={self.email})>"
+        return f"<User(username='{self.username}', hash={self.hash}, totp={self.totp}, email={self.email}, data={self.data})>"
 
 
 class Database:

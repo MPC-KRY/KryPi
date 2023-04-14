@@ -50,13 +50,17 @@ def Register():
 def Login():
     pass
 
+def DefaulLogin():
+    user = input("username")
+    pasw = input("password")
+
+
+    
+
 
 
 
 def Select():
-
-    
-    
 
     while True:
         print("""
@@ -80,6 +84,7 @@ def Select():
             break
         elif register == "2":
             print("Name and password authentication")
+            DefaultLogin()
             break
         elif register == "3":
             print("FaceLogin registration")
@@ -115,8 +120,12 @@ if __name__ == '__main__':
             krypi = KryPiShell()
             krypi.add_data(json_data)
             krypi.cmdloop()
+
+            data = krypi.retrieve_data()
             data = test_AES.encrypt(json.dumps(data), client.AES_key)
+            print(data)
             client.send_data_AES(data)
+
     except KeyboardInterrupt:
             data = krypi.retrieve_data()
             client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))

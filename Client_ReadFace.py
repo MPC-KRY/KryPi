@@ -63,7 +63,7 @@ class FaceCapturer:
                     images.append(face_frame)
                 cv2.imshow('Capturing Face for Login', img)
                 
-                if cv2.waitKey(100) & 0xFF == ord('q') or sampleNum > 1:
+                if cv2.waitKey(100) & 0xFF == ord('q') or sampleNum > 60:
                     break
 
             cam.release()

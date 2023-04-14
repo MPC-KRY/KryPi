@@ -34,6 +34,7 @@ def DetectFace(images,name2):
             Face_Id = 'Not detected'
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
             Id, confidence = recognizer.predict(gray[y:y + h, x:x + w])
+            print(Id, confidence)
             if (confidence < 40):
                 if (Id == id):
                     name = name2
