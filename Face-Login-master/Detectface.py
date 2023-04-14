@@ -29,7 +29,7 @@ def DetectFace():
     recognizer.read("TrainData\Trainner.yml")
     harcascadePath = "hh.xml"
     faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(1)
     font = cv2.FONT_HERSHEY_SIMPLEX
     Face_Id = ''
     name2 = ''
@@ -46,7 +46,8 @@ def DetectFace():
             Face_Id = 'Not detected'
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
             Id, confidence = recognizer.predict(gray[y:y + h, x:x + w])
-            if (confidence < 80):
+            if (confidence < 30):
+                print(f"{Id}, {confidence}")
                 if (Id == 1):
                     name = name1
                     
@@ -56,6 +57,8 @@ def DetectFace():
                 Predicted_name = str(name)
                 Face_Id = Predicted_name
             else:
+                print(f"NOT MEEE{Id}, {confidence}")
+
                 Predicted_name = 'Unknown'
                 Face_Id = Predicted_name
                 # Here unknown faces detected will be stored
@@ -73,18 +76,18 @@ def DetectFace():
         #print(Face_Id)
         cv2.waitKey(1)
 
-        # Checking if the face matches for Login
-        if Face_Id == 'Not detected':
-            print("-----Face Not Detected, Try again------")
-            pass
+        # # Checking if the face matches for Login
+        # if Face_Id == 'Not detected':
+        #     print("-----Face Not Detected, Try again------")
+        #     pass
             
-        elif Face_Id == name1 or name2 and Face_Id != 'Unknown' :
-            print('----------Detected as {}----------'.format(name1))
-            print('-----------login successfull-------')
-            print('***********WELCOME {}**************'.format(name1))
-            break
-        else:
-            print('-----------Login failed please try agian-------')
+        # elif Face_Id == name1 or name2 and Face_Id != 'Unknown' :
+        #     print('----------Detected as {}----------'.format(name1))
+        #     print('-----------login successfull-------')
+        #     print('***********WELCOME {}**************'.format(name1))
+        #     break
+        # else:
+        #     print('-----------Login failed please try agian-------')
         
         
         #if (cv2.waitKey(1) == ord('q')):

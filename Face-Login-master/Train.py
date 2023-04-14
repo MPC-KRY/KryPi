@@ -10,15 +10,26 @@ import pandas as pd
 
 
 def getImagesAndLabels(path):
+    file_names = []
+
+# Traverse the directory tree and visit all files
+    for dirpath, dirnames, filenames in os.walk(os.path.join(path)):
+        for filename in filenames:
+            # Add the full path of the file to the list
+            file_path = os.path.join(dirpath, filename)
+            file_names.append(file_path)
+
+    print(file_names)
     # Get the path of all the files in the folder
-    imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
+    # imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
+    # print(imagePaths)
 
     # Create empth face list
     faces = []
     # Create empty ID list
     Ids = []
     # Looping through all the image paths and loading the Ids and the images
-    for imagePath in imagePaths:
+    for imagePath in file_names:
         # Loading the image and converting it to gray scale
         pilImage = Image.open(imagePath).convert('L')
         # Now we are converting the PIL image into numpy array

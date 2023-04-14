@@ -11,9 +11,9 @@ import getpass
 
 def Face_Registration():
     Read_face = FaceCapturer()
-    name, id, dict, images = Read_face.capture_images()
+    name, images = Read_face.capture_images()
     client.send_data_AES("<STARTFACELOGIN>")
-    client.send_data_AES(f"<BEGIN>{name}<SEP>{id}")
+    client.send_data_AES(f"<BEGIN>{name}")
     client.send_data_AES("<SEPARATOR>")
     client.send_pictures_AES(images)
     client.send_data_AES("<DEPARATOR>")
@@ -26,18 +26,14 @@ def Face_login():
     while True:
         try:
             client.receive_data_AES()
-            print("1")
+            name = input("Input your name:")
+            client.send_data_AES(name)
             clients_face = Client_DetectFace.DetectFace()
-            print(2)
             client.send_pictures_AES(clients_face)
-            print(3)
             message = client.receive_data_AES()
-            print(4)
             print(message + "AGAIN MEASGE")
-            print(5)
             if isinstance(message,str) and "<AGAIN>" in message:
                 client.send_data_AES("<OK>")
-                print(6)
                 Face_login()
             if isinstance(message,str) and "<AUTHORIZED>" in message:
                 return True

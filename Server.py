@@ -17,6 +17,9 @@ import string
 import Server_LearnFace
 import csv
 import Server_DetectFace
+from Database import Database
+from Database import User
+
 
 
 
@@ -93,6 +96,7 @@ def read_json_data(file_path):
     return json_data
 
 def receive_faceloginData():
+    name = ""
     val = True
     while True:
         if val == True:
@@ -101,7 +105,7 @@ def receive_faceloginData():
             message = server.receive_data_AES(False)
             if val == False and isinstance(message,str) and "<DEPARATOR>" in message:
                 val = True
-                return True
+                return id,name
             pictures = pickle.loads(message)
 
         if val == False:
@@ -111,44 +115,41 @@ def receive_faceloginData():
                 else:
                     cv2.imwrite(f"faces\{name}.{id}.{i+1}.jpg", face)
         if val == True and "<BEGIN>" in message :
-            name = message.split("<SEP>")[0].split("<BEGIN>")[-1]
-            id = message.split("<SEP>")[1]
-            dict = {'Ids': id, 'Name': name}
-            if id == '1':
-                fieldnames = ['Name','Ids']
-                with open('Profile.csv','w') as f:
-                    writer = csv.DictWriter(f, fieldnames=fieldnames)
-                    writer.writeheader()
-                    writer.writerow(dict)
-            else:
-                fieldnames = ['Name','Ids']
-                with open('Profile.csv','a+') as f:
-                    writer = csv.DictWriter(f, fieldnames=fieldnames)
-                    writer.writerow(dict)
+            name = message.split("<BEGIN>")[-1]
+            print(name)
+
+            user = User(username=name, hash="738478383904", salt="7388774783834", iteration=54, totp=356765,
+                email="blahblah@boehhuhuhu.cz")
+            database.add_user(user)
+
+            # if id == '1':
+            #     fieldnames = ['Name','Ids']
+            #     with open('Profile.csv','w') as f:
+            #         writer = csv.DictWriter(f, fieldnames=fieldnames)
+            #         writer.writeheader()
+            #         writer.writerow(dict)
+            # else:
+            #     fieldnames = ['Name','Ids']
+            #     with open('Profile.csv','a+') as f:
+            #         writer = csv.DictWriter(f, fieldnames=fieldnames)
+            #         writer.writerow(dict)
 
         if val == True and "<SEPARATOR>" in message:
             val = False
 
 
 def Detect_Faces():
-    print(1)
     server.send_data_AES("Hello")
-    print(2)
+    credential = server.receive_data_AES(True)
     data = server.receive_data_AES(False)
-    print(3)
-    print("second")
     #message3 = server.receive_data_AES(True)
     data = pickle.loads(data)
-    bol = Server_DetectFace.DetectFace(data)
-    print(4)
+    bol = Server_DetectFace.DetectFace(data,credential)
     if bol == False:
         print(f"{bol} bol is ")
         server.send_data_AES("<AGAIN>")
-        print(5)
         message = server.receive_data_AES
-        print(6)
         if isinstance(message,str) and "<OK>" in message:
-            print(7)
             Detect_Faces()
 
     if bol == True:
@@ -163,6 +164,24 @@ def Detect_Faces():
 
 
 if __name__ == '__main__':
+
+
+
+    database = Database("example")
+    #print(db.get_users())
+    user = User(username='Jasdasde', hash="7384783834", salt="7384783834", iteration=23, totp=20304,
+                email="blahblah@boe.cz")
+    database.add_user(user)
+    user = User(username='Jasdasdebbbb', hash="738478383904", salt="7388774783834", iteration=54, totp=356765,
+                email="blahblah@boehhuhuhu.cz")
+    database.add_user(user)
+    users = database.get_users()
+    print(users)
+
+
+
+
+
     server = Server()
     server.listen()
     server.countDH()
@@ -172,13 +191,18 @@ if __name__ == '__main__':
 
     temp = True
     temp2 = True
+    id, name = "",""
+    vall = True
     while True:
         message = server.receive_data_AES(True)
         if temp == True and isinstance(message,str) and "<STARTFACELOGIN>" in message:
-            receive_faceloginData()
-        if isinstance(message,str) and "<ENDFACELOGIN>" in message and temp == True:
-            Server_LearnFace.TrainImages()
-            temp = False
+            name = receive_faceloginData()
+            id = database.get_user_by_name(name).id
+            print(id)
+
+        # if isinstance(message,str) and "<ENDFACELOGIN>" in message and temp == True:
+        #     Server_LearnFace.TrainImages(id,name)
+        #     temp = False
 
         if temp2 == True and isinstance(message,str) and "<STARTFACE>" in message:
             vall = Detect_Faces()

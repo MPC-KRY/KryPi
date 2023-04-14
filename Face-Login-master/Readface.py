@@ -16,7 +16,7 @@ def store_data():
     global name, Id, dic
     name = str(input("Enter Name  "))
     Id = str(input("Enter Id   "))
-   
+    #os.makedirs(f'TrainingImage/{name}')
     dic = {
         'Ids': Id,
         'Name': name
@@ -56,7 +56,7 @@ def TakeImages():
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writerow(dict1)
         
-        cam = cv2.VideoCapture(0)
+        cam = cv2.VideoCapture(1)
         detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
         sampleNum = 0
         
@@ -68,13 +68,13 @@ def TakeImages():
             for (x, y, w, h) in faces:
                 cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
                 sampleNum += 1
-                cv2.imwrite("TrainingImage\\" + name + "." + Id + '.' + str(sampleNum) + ".jpg", gray[y:y + h, x:x + w])
+                cv2.imwrite(f"TrainingImage\\{name}\\" + name + "." + Id + '.' + str(sampleNum) + ".jpg", gray[y:y + h, x:x + w])
                 
             cv2.imshow('Capturing Face for Login', img)
         
             if cv2.waitKey(100) & 0xFF == ord('q'):
                 break
-            elif sampleNum > 60:
+            elif sampleNum > 140:
                 break
             
         cam.release()
