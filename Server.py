@@ -20,7 +20,9 @@ import Server_DetectFace
 from Database import Database
 from Database import User
 import pyotp
-
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Hash import SHA256
+import random
 
 
 
@@ -174,8 +176,7 @@ def DefaultLogin():
         #koukne do DB jaky metody ma
         face,totp = True,True
         server.send_data_AES(f"{face}<>{totp}")
-    else:
-        server.send_data_AES("Wrong password")
+    else:  server.send_data_AES("Wrong password")
     
     choice = int(server.receive_data_AES(True))
     #FACE
@@ -200,10 +201,29 @@ def DefaultLogin():
 
 
 
+    #tvorba hesla
+def passGen(username,password):
+    salt = bytes([random.randint(0,255) for _ in range(16)])
+    iteration = random.randint(10000,90000)
+    user = database.get_user_by_name(username)
+    password = password.encode()
+    key_size = 128
+
+    key = PBKDF2(password, salt, dkLen=key_size, count=iteration, hmac_hash_module=SHA256)
+    user.hash = key
+    user.salt = salt
+    user.iteration = iteration
+    database.update_user(user)
+    #return key, salt, iteration
     
 
-
-
+def verify_password(user, password):
+    key_size = 128
+    user = database.get_user_by_name(user)
+    iteration = user.iteration
+    salt = user.salt
+    key = PBKDF2(password, salt, dkLen=key_size, count=iteration, hmac_hash_module=SHA256)
+    return user.hash == key
 
 
 
@@ -214,6 +234,23 @@ if __name__ == '__main__':
     server.listen()
     server.countDH()
     database = Database("example")
+
+    #register
+    username = input("username: ")
+    password = input("password: ")
+    user = User(username=username)
+    database.add_user(user)
+    passGen(username,password)
+
+
+    #verify
+    username1 = input("username: ")
+    password1 = input("password: ")
+    isverified = verify_password(username1,password1)
+    print(isverified)
+
+
+
 
     #SWITCH 
     message = server.receive_data_AES(True)
