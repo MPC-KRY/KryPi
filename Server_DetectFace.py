@@ -7,15 +7,11 @@ import pandas as pd
 import time
 
 
-def DetectFace(images,name2):
+def DetectFace(images,name2,Id):
 
-    ids = { 1: "Jakub" , 2 : "Vojta"}
-    for key , val in ids.items():
-        if val == name2:
-            id = key
     print('Detecting Login Face')
     recognizer = cv2.face.LBPHFaceRecognizer_create()  #cv2.createLBPHFaceRecognizer()
-    recognizer.read(f"TrainData\{name2}_{id}.yml")
+    recognizer.read(f"TrainData\{name2}_{Id}.yml")
     faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -33,10 +29,10 @@ def DetectFace(images,name2):
         for (x, y, w, h) in faces:
             Face_Id = 'Not detected'
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
-            Id, confidence = recognizer.predict(gray[y:y + h, x:x + w])
-            print(Id, confidence)
+            predicted_Id, confidence = recognizer.predict(gray[y:y + h, x:x + w])
+            print(predicted_Id, confidence)
             if (confidence < 40):
-                if (Id == id):
+                if (predicted_Id == Id):
                     name = name2
 
                 Predicted_name = str(name)
@@ -51,9 +47,9 @@ def DetectFace(images,name2):
                     cv2.imwrite("UnknownFaces\Image" + str(noOfFile) + ".jpg", img[y:y + h, x:x + w])
                 else:
                     pass
-            cv2.putText(img, str(Predicted_name), (x, y + h), font, 1, (255, 255, 255), 2)
+            #cv2.putText(img, str(Predicted_name), (x, y + h), font, 1, (255, 255, 255), 2)
             
-        cv2.imshow('Picture', img)
+        #cv2.imshow('Picture', img)
         cv2.waitKey(1)
 
         # Checking if the face matches for Login

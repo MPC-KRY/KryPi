@@ -138,67 +138,69 @@ def read_json_data(file_path):
 def receive_faceloginData():
     name = ""
     val = True
-    while True:
-        if val == True:
-            message = server.receive_data_AES(True)
+
+    username = server.receive_data_AES(True)
+    print(username)
+    user = database.get_user_by_name(username)
+    Id = user.id
+    
+    data = server.receive_data_AES(False)
+    pictures = pickle.loads(data)
+
+    for i,face in enumerate(pictures):
+        if isinstance(face,str):
+            pass
         else:
-            message = server.receive_data_AES(False)
-            if val == False and isinstance(message,str) and "<DEPARATOR>" in message:
-                val = True
-                return id,name
-            pictures = pickle.loads(message)
+            print(face)
+            cv2.imwrite(f"faces\{username}.{Id}.{i+1}.jpg", face)
+    end = server.receive_data_AES(True)
+    if isinstance(end,str) and "<ENDFACEREGISTER>" in end:
+        Server_LearnFace.TrainImages(Id,username)
+        return username
+
+        # if val == True:
+        #     message = server.receive_data_AES(True)
+        #     user = database.get_user_by_name()
+        # else:
+        #     message = server.receive_data_AES(False)
+        #     if val == False and isinstance(message,str) and "<DEPARATOR>" in message:
+        #         val = True
+        #         return name
+        #     pictures = pickle.loads(message)
 
 
-        if val == False:
-            for i,face in enumerate(pictures):
-                if isinstance(face,str):
-                    print(type(face))
-                else:
-                    cv2.imwrite(f"faces\{name}.{id}.{i+1}.jpg", face)
-        if val == True and "<BEGIN>" in message :
-            name = message.split("<BEGIN>")[-1]
-            print(name)
-
-            # user = User(username=name, hash="738478383904", salt="7388774783834", iteration=54, totp=356765,
-            #     email="blahblah@boehhuhuhu.cz")
-            # database.add_user(user)
-
-            # if id == '1':
-            #     fieldnames = ['Name','Ids']
-            #     with open('Profile.csv','w') as f:
-            #         writer = csv.DictWriter(f, fieldnames=fieldnames)
-            #         writer.writeheader()
-            #         writer.writerow(dict)
-            # else:
-            #     fieldnames = ['Name','Ids']
-            #     with open('Profile.csv','a+') as f:
-            #         writer = csv.DictWriter(f, fieldnames=fieldnames)
-            #         writer.writerow(dict)
-
-        if val == True and "<SEPARATOR>" in message:
-            val = False
+        # if val == False:
+        #     for i,face in enumerate(pictures):
+        #         if isinstance(face,str):
+        #             print(type(face))
+        #         else:
+        #             cv2.imwrite(f"faces\{name}.{id}.{i+1}.jpg", face)
+        # if val == True and "<BEGIN>" in message:
+        #     name = message.split("<BEGIN>")[-1]
+        #     print(name)
+        # if val == True and "<SEPARATOR>" in message:
+        #     val = False
 
 
 def Detect_Faces():
     server.send_data_AES("Hello")
-    credential = server.receive_data_AES(True)
-    data = server.receive_data_AES(False)
-    #message3 = server.receive_data_AES(True)
-    data = pickle.loads(data)
-    bol = Server_DetectFace.DetectFace(data,credential)
+    username = server.receive_data_AES(True)
+    user = database.get_user_by_name(username)
+    Id = user.id
+    faces = server.receive_data_AES(False)
+    faces = pickle.loads(faces)
+    bol = Server_DetectFace.DetectFace(faces,username,Id)
     if bol == False:
-        print(f"{bol} bol is ")
         server.send_data_AES("<AGAIN>")
         message = server.receive_data_AES
         if isinstance(message,str) and "<OK>" in message:
             Detect_Faces()
-
     if bol == True:
         server.send_data_AES("<AUTHORIZED>")
         print("Confirmed")
-        return False
+        return True, username
     else:
-        return True
+        return False, "notusername"
     
 
 
@@ -220,6 +222,10 @@ def DefaultLogin():
     #FACE
     if choice == 1:
         #FACE part
+        message = server.receive_data_AES(True)
+        if isinstance(message,str) and "<FACEAUTH>" in message:
+            authorized, username = Detect_Faces()
+
         pass
     #TOTP
     elif choice == 2:
@@ -229,10 +235,12 @@ def DefaultLogin():
         totp_now = pyotp.TOTP(totp_db).now()
         if int(totp_code) == int(totp_now):
             print("Je to spravne TOTP")
-            server.send_data_AES("<AUTHORIZED>")
-            return True, username
-        else:
-            return False, "notauthorized"
+            authorized = True
+    if authorized:
+        server.send_data_AES("<AUTHORIZED>")
+        return True, username
+    else:
+        return False, "notauthorized"
 
 
     
@@ -265,7 +273,7 @@ def verify_password(user, password):
 
 
 def create_user():
-    username, password,email = server.receive_data_AES(True).split("<>")
+    username, password, email = server.receive_data_AES(True).split("<>")
     user = database.get_user_by_name(username)
     if user is None:
         user = User(username=username, email=email)
@@ -297,7 +305,6 @@ if __name__ == '__main__':
     server.import_RSA()
     server.send_keys_RSA()
 
-
     public_key_client_RSA = server.receive_data()
     cipher = PKCS1_OAEP.new(server.rsa_private_key)
 
@@ -309,8 +316,6 @@ if __name__ == '__main__':
 
     public_client_RSA = RSA.importKey(plaintext)
 
-
-
     server.countDH(public_client_RSA,server.rsa_private_key)
     database = Database("example")
 
@@ -321,33 +326,16 @@ if __name__ == '__main__':
     # database.add_user(user)
     # passGen(username,password)
 
-    database.delete_user("Jasdasde")
-    database.delete_user("Jasdasdebbbb")
-    database.delete_user("Jakub")
-    database.delete_user("Matej")
-    database.delete_user("Vojtisek")
-    database.delete_user("Michal")
-    database.delete_user("Bla")
-    database.delete_user("bla")
-    database.delete_user("hovno")
-
-
-    
-
-
-    data = "HbZErx23LSBWLkXJIPxGVq+dr4OmTx6p5MUO///cDXw4v+D/kpIl+gW1RhxBFpCXfICA1Vdv13QmoDy2UT/fVY0B0GzACy/gmf5GNTX1uQks9hRflnlSrWS7Qasw0gVY1njiognDHRNOcDEFss2I9kP6B3NAhFYN+oHc8P9R+z6g6i33/hiWAdXp8vOXmXRwpqxef3blNqDhf2AglLxUP0PFnYPoipXQvDuoS3lAcqOIiEd+s+5FmE6Eyq+6uADRzOV3Cp+WtqUbENkKNHCeKugNqXBhYXzPmO+JTq89K331djfjjhx5XFyn20D9/f+Coe9Ap4ZnCQk718B3q3tvclpqRekRmUHr8q+cesaZ5ILyztRVX+L3YykZAYQ1OI6sVt9i+4mHq5uzLYyzTnDycHHEWZu4PMEDe6dl9W0IWzfm/F6FV+iNUaRDvm50Z8EPfRPeE8XXkSrTc+M7cZVeUwUVHrSGSgWBPn3JrFh1kx/+y2SCOLd4egT29aQxA8uXhcrGk8WAl1Gb915eSDVGKKNJHgVziuBT6BA9df/AwQ8w7Ta+4iNBR6oAZWjDLpQtHw7jWx2AlbJ1CXhy5lmQuL7lz43/Zuesta3Gnoou8VMDAHDMuN8hcpFmNCCsNfQRkiBMt2jnibPqMHV1xdpIOda329ZvmtINKDATf+tEmna9g1gFKBt2LOUWncTjU0s67peIAKMC+PnoCnoKB73wm7cD29ePa5yri3515tVTRWHPC0iVRxLORNE2/tJICRcBCwf/sVFtu8S2iWLUfhgfBLVns40oX2R9aGjmhUpNXW/wgw5S1OS2UPMG6fJOsvEPKuZgs7SP+bFiLg9qSW4xM+Kll1/Wp6mdpaukJJISwiHOtV/R5MyM76CO1GFr+b7YqAeCvThc2eNym1cm0Sk87iwvkP6WCf+1+vhqXT+yMnnf6zoNr7x6zQjqAokv52OgZGmbBXkBOuWy9W21Dldn7jiaJQohjInKqU4Vd8UHVAXofTMdjmq0Iij5WWsjGhV/"
-    user = database.get_user_by_name("ahoj")
-    user.data = data
-    database.update_user(user)
+    # data = "HbZErx23LSBWLkXJIPxGVq+dr4OmTx6p5MUO///cDXw4v+D/kpIl+gW1RhxBFpCXfICA1Vdv13QmoDy2UT/fVY0B0GzACy/gmf5GNTX1uQks9hRflnlSrWS7Qasw0gVY1njiognDHRNOcDEFss2I9kP6B3NAhFYN+oHc8P9R+z6g6i33/hiWAdXp8vOXmXRwpqxef3blNqDhf2AglLxUP0PFnYPoipXQvDuoS3lAcqOIiEd+s+5FmE6Eyq+6uADRzOV3Cp+WtqUbENkKNHCeKugNqXBhYXzPmO+JTq89K331djfjjhx5XFyn20D9/f+Coe9Ap4ZnCQk718B3q3tvclpqRekRmUHr8q+cesaZ5ILyztRVX+L3YykZAYQ1OI6sVt9i+4mHq5uzLYyzTnDycHHEWZu4PMEDe6dl9W0IWzfm/F6FV+iNUaRDvm50Z8EPfRPeE8XXkSrTc+M7cZVeUwUVHrSGSgWBPn3JrFh1kx/+y2SCOLd4egT29aQxA8uXhcrGk8WAl1Gb915eSDVGKKNJHgVziuBT6BA9df/AwQ8w7Ta+4iNBR6oAZWjDLpQtHw7jWx2AlbJ1CXhy5lmQuL7lz43/Zuesta3Gnoou8VMDAHDMuN8hcpFmNCCsNfQRkiBMt2jnibPqMHV1xdpIOda329ZvmtINKDATf+tEmna9g1gFKBt2LOUWncTjU0s67peIAKMC+PnoCnoKB73wm7cD29ePa5yri3515tVTRWHPC0iVRxLORNE2/tJICRcBCwf/sVFtu8S2iWLUfhgfBLVns40oX2R9aGjmhUpNXW/wgw5S1OS2UPMG6fJOsvEPKuZgs7SP+bFiLg9qSW4xM+Kll1/Wp6mdpaukJJISwiHOtV/R5MyM76CO1GFr+b7YqAeCvThc2eNym1cm0Sk87iwvkP6WCf+1+vhqXT+yMnnf6zoNr7x6zQjqAokv52OgZGmbBXkBOuWy9W21Dldn7jiaJQohjInKqU4Vd8UHVAXofTMdjmq0Iij5WWsjGhV/"
+    # user = database.get_user_by_name("ahoj")
+    # user.data = data
+    # database.update_user(user)
     
     #verify
     # username1 = input("username: ")
     # password1 = input("password: ")
     # isverified = verify_password(username1,password1)
     # print(isverified)
-
-
-
 
     authorized = False
     #SWITCH 
@@ -356,29 +344,32 @@ if __name__ == '__main__':
         authorized,username = DefaultLogin()
     elif isinstance(message,str) and "<REGISTRATION>" in message:
         create_user()
+    # elif isinstance(message,str) and "<FACEAUTH>" in message:
+    #     authorized, username = Detect_Faces()
+    elif isinstance(message,str) and "<FACEREGISTER>" in message:
+        username = receive_faceloginData()
 
+        
+        pass
 
 
     if authorized:
         user = database.get_user_by_name(username)
         data = user.data
         server.send_data_AES(data)
+        print("authorized")
 
     while True:
         data = server.receive_data_AES(True)
 
         if data is not None:
+            print("dtaaa")   
             user = database.get_user_by_name(username)
             user.data = data
             database.update_user(user)
 
 
 
-    temp = True
-    temp2 = True
-    id, name = "",""
-    vall = False
-    #while True:
         #message = server.receive_data_AES(True)
         # if temp == True and isinstance(message,str) and "<STARTFACELOGIN>" in message:
         #     name = receive_faceloginData()

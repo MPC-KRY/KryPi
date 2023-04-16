@@ -7,6 +7,9 @@ from getpass import getpass
 import secrets
 import string
 import pyperclip
+from Client_ReadFace import FaceCapturer
+import Client_DetectFace
+
 
 def is_authorized(func):
     """Get a password entry
@@ -28,13 +31,7 @@ class KryPiShell(cmd.Cmd):
     IDs = []
     Titles = []
     is_authenticated = False
-
-    def do_login(self,arg):
-        passs = input("Input password")
-        if passs == "1":
-            self.is_authenticated = True
-        else:
-            self.is_authenticated = False
+    socket = None
 
 
     
@@ -59,7 +56,6 @@ class KryPiShell(cmd.Cmd):
         
         
 ###             ADD  #################################################
-    @is_authorized
     def do_add(self, arg):
         """Get a password entry
         add [title]"""

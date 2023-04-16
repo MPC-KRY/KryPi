@@ -19,7 +19,7 @@ def DetectFace():
     sampleNum = 0
 
  
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(1)
     detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
     # Camera ON Everytime
@@ -35,16 +35,18 @@ def DetectFace():
             face_frame = gray[y:y+h, x:x+w]
             sampleNum +=1
             images.append(frame)
-            if len(images) > 1:
-                print("len 5")
-                return pickle.dumps(images)
-
-        cv2.imshow('Capturing Face for Login', frame)
-                
-
-
-        cv2.waitKey(1)
         
+        if len(images) > 2:
+            print("len 5")
+
+            break
+
+    cv2.imshow('Capturing Face for Login', frame)
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
+    return pickle.dumps(images)
+    
+    cam.release()
 
 
 

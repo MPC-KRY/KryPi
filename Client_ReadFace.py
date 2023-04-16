@@ -44,7 +44,7 @@ class FaceCapturer:
         dict1 = self.store_data()
 
         if (self.name.isalpha()):
-            cam = cv2.VideoCapture(0)
+            cam = cv2.VideoCapture(1)
             detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
             sampleNum = 0
@@ -63,7 +63,7 @@ class FaceCapturer:
                     images.append(face_frame)
                 cv2.imshow('Capturing Face for Login', img)
                 
-                if cv2.waitKey(100) & 0xFF == ord('q') or sampleNum > 60:
+                if cv2.waitKey(100) & 0xFF == ord('q') or sampleNum > 6:
                     break
 
             cam.release()

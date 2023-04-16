@@ -16,21 +16,17 @@ from Crypto.Cipher import PKCS1_OAEP
 def Face_Registration():
     Read_face = FaceCapturer()
     name, images = Read_face.capture_images()
-    client.send_data_AES("<STARTFACELOGIN>")
-    client.send_data_AES(f"<BEGIN>{name}")
-    client.send_data_AES("<SEPARATOR>")
+    client.send_data_AES("<FACEREGISTER>")
+    client.send_data_AES(name)
     client.send_pictures_AES(images)
-    client.send_data_AES("<DEPARATOR>")
-    client.send_data_AES("<ENDFACELOGIN>")
+    client.send_data_AES("<ENDFACEREGISTER>")
 
 
-def Face_login():
-
-    client.send_data_AES("<STARTFACE>")
+def Face_login(name):
+    client.send_data_AES("<FACEAUTH>")
     while True:
         try:
             client.receive_data_AES()
-            name = input("Input your name:")
             client.send_data_AES(name)
             clients_face = Client_DetectFace.DetectFace()
             client.send_pictures_AES(clients_face)
@@ -39,6 +35,7 @@ def Face_login():
             if isinstance(message,str) and "<AGAIN>" in message:
                 client.send_data_AES("<OK>")
                 Face_login()
+                return False
             if isinstance(message,str) and "<AUTHORIZED>" in message:
                 return True
                 
@@ -46,6 +43,10 @@ def Face_login():
         except KeyboardInterrupt:
             print("ended")
             break
+
+def totp_registration():
+    pass
+
 
 
 def Register():
@@ -60,17 +61,27 @@ def Register():
     print(message)
 
 
-    pass
+    choice = input("you want to setup totp or face")
+    choice = int(choice)
+    if choice == 1:
+        #TOTP
+        pass
+    elif choice == 2:
+        #register FACE
+        Face_Registration()
+
+    #register TOTP
+
 
 
 def Login():
     pass
 
 def DefaultLogin():
-    user = input("username")
+    username = input("username")
     pasw = input("password")
     client.send_data_AES("<DEFAULTLOGIN>")
-    client.send_data_AES(f"{user}<>{pasw}")
+    client.send_data_AES(f"{username}<>{pasw}")
     try:
         face,totp = client.receive_data_AES().split("<>")
 
@@ -80,14 +91,14 @@ def DefaultLogin():
         message = client.receive_data_AES()
         print(message)
 
-    if face:
-        print("je tam oblicej")
-    if totp:
-        print("je tam totp")
-        choice = input("choose authentication type 1. face, 2.totp")
+
+    choice = input("Available authentication type 1. face, 2.totp")
 
     client.send_data_AES(choice)
-        
+
+    if int(choice) == 1:
+        message = Face_login(username)
+
     if int(choice) == 2:
         totp_code = input("insert TOTP code")
         client.send_data_AES(totp_code)
@@ -101,26 +112,28 @@ def DefaultLogin():
 
 def Select():
     while True:
+        authorized = True
         print("""
-            1. Face authentication (only working)
-            2. Name and Password + TOTP
-            3.registration
-            4. 
+            1. Name and Password + 2FA
+            2. User creation
+            3. Password recovery
         """)
         register = input("Select type of login authentication: ")
+        # if register == "1":
+        #     #face authorization
+        #     print("face authorization authentication")
+        #     Face_login()
+        #     break
         if register == "1":
-            #face authorization
-            print("face authorization authentication")
-            Face_login()
-            break
-        elif register == "2":
-            print("TOTP authentication")
+            print("Authentication")
             authorized = DefaultLogin()
-        elif register == "3":
+        elif register == "2":
             print("user registration registration")
             Register()
             print("registration complete")
             break
+        elif register == "3":
+            pass
         else:
             print("not correct choice")
         return authorized
@@ -149,7 +162,6 @@ if __name__ == '__main__':
             cipher = PKCS1_OAEP.new(public_RSA_server_key)
             temp = client_RSA_key.public_key().exportKey()
 
-
 # TODO rozdeleni na chunky
             chunk_size = 190 # maximum length of plaintext that can be encrypted is 214 bytes
             ciphertext = b''
@@ -158,13 +170,9 @@ if __name__ == '__main__':
                 ciphertext += cipher.encrypt(chunk)
             client.send_data(ciphertext)
 
-
-
-
-
         client.countDHEC(public_RSA_server_key,client_RSA_key)
         authorized = Select()
-        authentication = True
+
         #if authentiation was succesfull
         if authorized == True:
             json_data = client.receive_data_AES()
