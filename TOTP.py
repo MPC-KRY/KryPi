@@ -7,14 +7,14 @@ def totp_generate_qrcode(key, name):
     qrcode_terminal.draw(qr_text)
 
 
-key = "tBMrJrDKlChPJ3pY"
-totp = pyotp.TOTP(key)
+# key = "ORSXG5DFON2HIZLT"
+# totp = pyotp.TOTP(key)
 
-totp_generate_qrcode(key, "xhynek11")
+# totp_generate_qrcode(key, "xhynek11")
 
-while True:
-    old_TOTP = totp.now()
-    print(totp.now())
-    while True:
-        if old_TOTP != totp.now():
-            break
+# while True:
+#     old_TOTP = totp.now()
+#     print(totp.now())
+#     while True:
+#         if old_TOTP != totp.now():
+#             break

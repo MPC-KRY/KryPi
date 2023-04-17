@@ -6,6 +6,8 @@ from Crypto import Random
 from getpass import getpass
 import struct
 import os
+import sys
+
 
 HELP_MESSAGE = """
     Certificate Authority tool
@@ -47,13 +49,13 @@ def generate_to_file(public_key_path: str = 'public_key.pem', private_key_path: 
     """
     Generates public, private key pairs for DSA
     """
+
     sk = SigningKey.generate(curve=NIST384p)  # uses NIST192p
     vk = sk.verifying_key
     with open(public_key_path, 'wb') as public_key:
         public_key.write(vk.to_pem())
     with open(private_key_path, 'wb') as private_key:
         private_key.write(encrypt(password, sk.to_pem()))
-
 
 def sign_file(data_file: str, private_key_path: str = 'private_key.pem', hash_path: str = "hash.sig",
               password: bytes = b"password"):
@@ -148,7 +150,5 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    import sys
-
     #sys.argv = ["asd", "--generate", "--sign", "public_key_RSA.pem", "--verify", "public_key_RSA.pem"]
     main(sys.argv[1:])

@@ -32,7 +32,6 @@ class Client:
         self.sock.connect((self.host, self.port))
         print(f"connected to {self.host}:{self.port}")
 
-
     def recieve_RSA(self):
         pub_key_RSA = self.receive_data()
         hash_RSA = self.receive_data()
@@ -73,26 +72,16 @@ class Client:
     def verify_signature(self, data, hash, public_key_file='public_key.pem'):
         with open("public_key.pem", 'rb') as public_key:
             temp = public_key.read()
-            
-
-
             temp2 = CA.VerifyingKey.from_pem(temp)
             temp3 = temp2.verify(hash, data)
             return temp3
 
-
     def encrypt_RSA(self, key):
         pass
-
-
 
     def countDHEC(self, pub_key_server, priv_key_client):
         cipher_server = PKCS1_OAEP.new(pub_key_server)
         cipher_client = PKCS1_OAEP.new(priv_key_client)
-
-
-
-
 
         # generate private key and converts the ECDH public key to bytes and sends it to the client
         Alice_private_key = ec.generate_private_key(ec.SECP384R1())
@@ -114,7 +103,6 @@ class Client:
         self.ECDH_key = binascii.b2a_hex(Alice_derived_key)[:32]
         print("\nBob's derived key: ", binascii.b2a_hex(Alice_derived_key).decode())
 
-
     def gen_RSA(self):
         rsa_keys = RSA.generate(2048)
         return rsa_keys
@@ -124,7 +112,6 @@ class Client:
 if __name__ == '__main__':
     client = Client()
     client.connect()
-
 
     json_data = client.receive_data_AES()
     json_data = test_AES.decrypt(json_data, client.AES_key)

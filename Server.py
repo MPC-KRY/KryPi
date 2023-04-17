@@ -25,11 +25,10 @@ from Crypto.Hash import SHA256
 import random
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+import base64
+import secrets
 
 # generate a new RSA key pair
-
-
-
 
 
 class Server:
@@ -73,7 +72,6 @@ class Server:
                     return mes
                 except:
                     return test_AES.decrypt(data.decode(), self.ECDH_key, False)
-
 
     def close(self):
         self.sock.close()
@@ -205,6 +203,7 @@ def Detect_Faces():
 
 
 def DefaultLogin():
+
     username, password = server.receive_data_AES(True).split("<>")
     print(username, password)
     user = database.get_user_by_name(username)
@@ -225,8 +224,6 @@ def DefaultLogin():
         message = server.receive_data_AES(True)
         if isinstance(message,str) and "<FACEAUTH>" in message:
             authorized, username = Detect_Faces()
-
-        pass
     #TOTP
     elif choice == 2:
         #TOTP part
@@ -241,10 +238,6 @@ def DefaultLogin():
         return True, username
     else:
         return False, "notauthorized"
-
-
-    
-
 
 
     #tvorba hesla
@@ -280,26 +273,40 @@ def create_user():
         database.add_user(user)
         passGen(username,password)
         server.send_data_AES("User Created")
-        create_TOTP(username)
+
+        #receive certificate and save
+        vk = server.receive_data_AES(True)
+        user = database.get_user_by_name(username)
+        user.user_certificate = vk
+        database.update_user(user)
+
+
+        choice = server.receive_data_AES(True)
+        if choice == "1":
+            create_TOTP(username)
+        elif choice == "2":
+            #create_face
+            pass
+
     else:
         print("user exists")
         server.send_data_AES("User NOT Created")
 
 
 def create_TOTP(username):
+    random_bytes = secrets.token_bytes(20)
+    base32_string = base64.b32encode(random_bytes).decode()
+    totp_seed = base32_string[:16]
+
     alphabet = string.ascii_letters + string.digits
-    totp_seed = ''.join(random.choice(alphabet) for i in range(16))
     user = database.get_user_by_name(username)
     user.totp = totp_seed
     database.update_user(user)
+    server.send_data_AES(totp_seed)
     print(totp_seed)
 
 
-
-
-
 if __name__ == '__main__':
-
     server = Server()
     server.listen()
     server.import_RSA()
@@ -319,6 +326,8 @@ if __name__ == '__main__':
     server.countDH(public_client_RSA,server.rsa_private_key)
     database = Database("example")
 
+
+
     #register
     # username = input("username: ")
     # password = input("password: ")
@@ -327,7 +336,7 @@ if __name__ == '__main__':
     # passGen(username,password)
 
     # data = "HbZErx23LSBWLkXJIPxGVq+dr4OmTx6p5MUO///cDXw4v+D/kpIl+gW1RhxBFpCXfICA1Vdv13QmoDy2UT/fVY0B0GzACy/gmf5GNTX1uQks9hRflnlSrWS7Qasw0gVY1njiognDHRNOcDEFss2I9kP6B3NAhFYN+oHc8P9R+z6g6i33/hiWAdXp8vOXmXRwpqxef3blNqDhf2AglLxUP0PFnYPoipXQvDuoS3lAcqOIiEd+s+5FmE6Eyq+6uADRzOV3Cp+WtqUbENkKNHCeKugNqXBhYXzPmO+JTq89K331djfjjhx5XFyn20D9/f+Coe9Ap4ZnCQk718B3q3tvclpqRekRmUHr8q+cesaZ5ILyztRVX+L3YykZAYQ1OI6sVt9i+4mHq5uzLYyzTnDycHHEWZu4PMEDe6dl9W0IWzfm/F6FV+iNUaRDvm50Z8EPfRPeE8XXkSrTc+M7cZVeUwUVHrSGSgWBPn3JrFh1kx/+y2SCOLd4egT29aQxA8uXhcrGk8WAl1Gb915eSDVGKKNJHgVziuBT6BA9df/AwQ8w7Ta+4iNBR6oAZWjDLpQtHw7jWx2AlbJ1CXhy5lmQuL7lz43/Zuesta3Gnoou8VMDAHDMuN8hcpFmNCCsNfQRkiBMt2jnibPqMHV1xdpIOda329ZvmtINKDATf+tEmna9g1gFKBt2LOUWncTjU0s67peIAKMC+PnoCnoKB73wm7cD29ePa5yri3515tVTRWHPC0iVRxLORNE2/tJICRcBCwf/sVFtu8S2iWLUfhgfBLVns40oX2R9aGjmhUpNXW/wgw5S1OS2UPMG6fJOsvEPKuZgs7SP+bFiLg9qSW4xM+Kll1/Wp6mdpaukJJISwiHOtV/R5MyM76CO1GFr+b7YqAeCvThc2eNym1cm0Sk87iwvkP6WCf+1+vhqXT+yMnnf6zoNr7x6zQjqAokv52OgZGmbBXkBOuWy9W21Dldn7jiaJQohjInKqU4Vd8UHVAXofTMdjmq0Iij5WWsjGhV/"
-    # user = database.get_user_by_name("ahoj")
+    # user = database.get_user_by_name("ja")
     # user.data = data
     # database.update_user(user)
     
@@ -336,12 +345,14 @@ if __name__ == '__main__':
     # password1 = input("password: ")
     # isverified = verify_password(username1,password1)
     # print(isverified)
+    
 
+    
     authorized = False
     #SWITCH 
     message = server.receive_data_AES(True)
     if isinstance(message,str) and "<DEFAULTLOGIN>" in message:
-        authorized,username = DefaultLogin()
+        authorized, username = DefaultLogin()
     elif isinstance(message,str) and "<REGISTRATION>" in message:
         create_user()
     # elif isinstance(message,str) and "<FACEAUTH>" in message:
@@ -349,15 +360,28 @@ if __name__ == '__main__':
     elif isinstance(message,str) and "<FACEREGISTER>" in message:
         username = receive_faceloginData()
 
-        
         pass
 
-
     if authorized:
-        user = database.get_user_by_name(username)
-        data = user.data
-        server.send_data_AES(data)
-        print("authorized")
+        choice = server.receive_data_AES(True)
+        if choice == "1":
+            #add method
+            #check which method he has
+            totp = True
+            face = False
+
+            server.send_data_AES(f"{totp}<>{face}")
+
+
+
+            pass
+
+        elif choice == "2":
+            #access data
+            user = database.get_user_by_name(username)
+            data = user.data
+            server.send_data_AES(data)
+            print("authorized")
 
     while True:
         data = server.receive_data_AES(True)

@@ -15,8 +15,9 @@ class User(Base):
     salt = Column(String)
     iteration = Column(Integer)
     email = Column(String)
-    totp = Column(Integer)
+    totp = Column(String)
     data = Column(String)
+    user_certificate = Column(String)
 
     def __repr__(self):
         return f"<User(username='{self.username}', hash={self.hash}, totp={self.totp}, email={self.email}, data={self.data})>"
@@ -48,6 +49,7 @@ class Database:
         user_db.email = user.email
         user_db.salt = user.salt
         user_db.iteration = user.iteration
+        user_db.user_certificate = user.user_certificate
 
         self.session.commit()
 

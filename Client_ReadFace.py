@@ -40,10 +40,10 @@ class FaceCapturer:
      
         return False
 
-    def capture_images(self):
-        dict1 = self.store_data()
+    def capture_images(self,username):
+        #dict1 = self.store_data()
 
-        if (self.name.isalpha()):
+        if (username.isalpha()):
             cam = cv2.VideoCapture(1)
             detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
@@ -69,11 +69,11 @@ class FaceCapturer:
             cam.release()
             cv2.destroyAllWindows()
 
-            print(f'Captured {len(images)} images for Name: {self.name}')
-            return self.name,  pickle.dumps(images)
+            print(f'Captured {len(images)} images for Name: {username}')
+            return pickle.dumps(images)
 
         else:
-            if self.name.isalpha():
+            if username.isalpha():
                 print('Enter Proper ID')
             else:
                 print('Enter Proper ID and Name')

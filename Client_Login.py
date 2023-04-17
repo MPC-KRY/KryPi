@@ -8,16 +8,16 @@ import getpass
 import CA
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+from ecdsa import SigningKey, NIST384p, VerifyingKey
+import TOTP
 
 
 
-
-
-def Face_Registration():
+def Face_Registration(username):
     Read_face = FaceCapturer()
-    name, images = Read_face.capture_images()
+    images = Read_face.capture_images(username)
     client.send_data_AES("<FACEREGISTER>")
-    client.send_data_AES(name)
+    client.send_data_AES(username)
     client.send_pictures_AES(images)
     client.send_data_AES("<ENDFACEREGISTER>")
 
@@ -37,17 +37,32 @@ def Face_login(name):
                 Face_login()
                 return False
             if isinstance(message,str) and "<AUTHORIZED>" in message:
-                return True
-                
+                return True 
             
         except KeyboardInterrupt:
             print("ended")
             break
 
-def totp_registration():
+# TODO dodelat
+def totp_registration(username):
+    totp_seed = client.receive_data_AES()
+    TOTP.totp_generate_qrcode(totp_seed,username)
+    print("QR code of your TOTP seed")
+    print(f"Your's TOTP_seed is: {totp_seed} (Imput it inside authenticator)")
+
+def credibility(username):
+    # uzivatel si open vygeneruje dalsi par klicu
     pass
 
+def create_certificate(password,username):
+    sk = SigningKey.generate(curve=NIST384p)  # uses NIST192p
+    vk = sk.verifying_key
 
+    with open(f"public_key_{username}.pem", 'wb') as public_key:
+        public_key.write(vk.to_pem())
+    with open(f"private_key_{username}.pem", 'wb') as private_key:
+        private_key.write(CA.encrypt(password.encode(), sk.to_pem()))
+    return vk.to_pem()
 
 def Register():
     #Face_Registration()
@@ -60,17 +75,22 @@ def Register():
     message = client.receive_data_AES()
     print(message)
 
+# creation of certificate
+    print("Creating certificate")
+    vk = create_certificate(password, username)
+    client.send_data_AES(vk.decode())
 
     choice = input("you want to setup totp or face")
+    client.send_data_AES(choice)
     choice = int(choice)
     if choice == 1:
-        #TOTP
-        pass
+        totp_registration(username)
+        return True, username
+        
     elif choice == 2:
         #register FACE
-        Face_Registration()
-
-    #register TOTP
+        Face_Registration(username)
+        return True, username
 
 
 
@@ -105,9 +125,9 @@ def DefaultLogin():
 
     message = client.receive_data_AES()
     if isinstance(message,str) and "<AUTHORIZED>" in message:
-        return True
+        return True, username
     else: 
-        return False
+        return False, "notusername"
 
 
 def Select():
@@ -119,24 +139,17 @@ def Select():
             3. Password recovery
         """)
         register = input("Select type of login authentication: ")
-        # if register == "1":
-        #     #face authorization
-        #     print("face authorization authentication")
-        #     Face_login()
-        #     break
         if register == "1":
             print("Authentication")
-            authorized = DefaultLogin()
+            authorized,username = DefaultLogin()
         elif register == "2":
             print("user registration registration")
-            Register()
-            print("registration complete")
-            break
+            authorized,username = Register()
         elif register == "3":
             pass
         else:
             print("not correct choice")
-        return authorized
+        return authorized,username
 
 
 
@@ -162,6 +175,9 @@ if __name__ == '__main__':
             cipher = PKCS1_OAEP.new(public_RSA_server_key)
             temp = client_RSA_key.public_key().exportKey()
 
+            #overeni duveryhodnosti
+
+
 # TODO rozdeleni na chunky
             chunk_size = 190 # maximum length of plaintext that can be encrypted is 214 bytes
             ciphertext = b''
@@ -171,23 +187,48 @@ if __name__ == '__main__':
             client.send_data(ciphertext)
 
         client.countDHEC(public_RSA_server_key,client_RSA_key)
-        authorized = Select()
+        authorized, username = Select()
 
         #if authentiation was succesfull
         if authorized == True:
-            json_data = client.receive_data_AES()
-            json_data = test_AES.decrypt(json_data, client.AES_key)
-            client.add_to_json_data(json_data)
-            krypi = KryPiShell()
-            krypi.add_data(json_data)
-            krypi.cmdloop()
+            choice = input("Do you want to add authentication method or access data?")
+            client.send_data_AES(choice)
+            if choice == "1":
+                #add method
+                totp, face = client.receive_data_AES()
+                face = True if face == "True" else False
+                totp = True if totp == "True" else False
 
-            data = krypi.retrieve_data()
-            data = test_AES.encrypt(json.dumps(data), client.AES_key)
-            print(data)
-            client.send_data_AES(data)
+                if face:
+                    print("You have face authentication")
+                elif totp:
+                    print("You have TOTP authentication")
+
+                method = input("which method 1. totp, 2. face: ")   
+                if method == "1":
+                    Face_Registration(username)
+                elif method == "2":
+                    totp_registration(username)
+
+
+
+            elif choice == "2":
+                json_data = client.receive_data_AES()
+                json_data = test_AES.decrypt(json_data, client.AES_key)
+                client.add_to_json_data(json_data)
+                krypi = KryPiShell()
+                krypi.add_data(json_data)
+                krypi.cmdloop()
+
+                data = krypi.retrieve_data()
+                data = test_AES.encrypt(json.dumps(data), client.AES_key)
+                print(data)
+                client.send_data_AES(data)
+
+
+            #TODO password recovery
         else:
-            print("now authorized")
+            print("not authorized")
 
     except KeyboardInterrupt:
             data = krypi.retrieve_data()
