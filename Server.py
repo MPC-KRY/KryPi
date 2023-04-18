@@ -242,10 +242,7 @@ def create_user():
         database.add_user(user)
         passGen(username,password)
         server.send_data_AES("User Created")
-
         #CRETIBILITY
-
-
 
         #receive empty data encrypted
         data = server.receive_data_AES(True)
@@ -267,7 +264,7 @@ def create_user():
             receive_faceloginData()
     else:
         print("user exists, NOT created")
-        server.send_data_AES("User NOT Created")
+        #server.send_data_AES("User NOT Created")
 
 
 def create_TOTP(username):
@@ -305,17 +302,12 @@ if __name__ == '__main__':
     while True:
         authorized = False
         #SWITCH 
-        message = server.receive_data_AES(True)
-        if isinstance(message,str) and "<DEFAULTLOGIN>" in message:
+        #receive register for login or sign up
+        login_signup = server.receive_data_AES(True)
+        if login_signup == "1":
             authorized, username = DefaultLogin()
-        elif isinstance(message,str) and "<REGISTRATION>" in message:
+        elif login_signup == "2":
             create_user()
-        # elif isinstance(message,str) and "<FACEAUTH>" in message:
-        #     authorized, username = Detect_Faces()
-        elif isinstance(message,str) and "<FACEREGISTER>" in message:
-            receive_faceloginData()
-            
-
 
         if authorized:
             choice = server.receive_data_AES(True)
@@ -357,6 +349,7 @@ if __name__ == '__main__':
                     user = database.get_user_by_name(username)
                     user.data = data
                     database.update_user(user)
+                    break
 
         else:
             print("Not authorized")

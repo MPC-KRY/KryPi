@@ -85,16 +85,11 @@ def create_certificate(password,username):
 def Register():
     #TODO here i want AES KEY idk if generater or what
     #Face_Registration()
-    client.send_data_AES("<REGISTRATION>")
     username = input("Enter username:")
     password = input("Enter password:")
     e_mail = input("Enter email:")
     decrypt_key = input("Enter vault d/encryption phrase: ")
     decrypt_key_hash = SHA256.new(decrypt_key.encode()).digest()
-
-
-
-
 
     alphabet = string.ascii_letters + string.digits
     recovery_string = ''.join(secrets.choice(alphabet) for i in range(20))
@@ -130,15 +125,10 @@ def Register():
     elif choice == 2:
         #register FACE
         Face_Registration(username)
-
-def Login():
-    pass
-
-
+    
 def DefaultLogin():
     username = input("Username: ")
     pasw = input("Password: ")
-    client.send_data_AES("<DEFAULTLOGIN>")
     client.send_data_AES(f"{username}<>{pasw}")
     try:
         face,totp = client.receive_data_AES().split("<>")
