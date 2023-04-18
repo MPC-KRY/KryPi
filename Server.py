@@ -2,20 +2,14 @@ import binascii
 import json
 import socket
 import NetworkUtils
-
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import load_der_public_key
-
 import test_AES
 import cv2
-import os
-import numpy as np
 import pickle
-import string
 import Server_LearnFace
-import csv
 import Server_DetectFace
 from Database import Database
 from Database import User
@@ -241,13 +235,17 @@ def verify_password(user, password):
 
 
 def create_user():
-    username, password, email = server.receive_data_AES(True).split("<>")
+    username, password, email, AES_password = server.receive_data_AES(True).split("<>")
     user = database.get_user_by_name(username)
     if user is None:
-        user = User(username=username, email=email)
+        user = User(username=username, email=email, aes_password=AES_password)
         database.add_user(user)
         passGen(username,password)
         server.send_data_AES("User Created")
+
+        #CRETIBILITY
+
+
 
         #receive empty data encrypted
         data = server.receive_data_AES(True)
@@ -283,6 +281,7 @@ def create_TOTP(username):
 
 
 
+
 if __name__ == '__main__':
     server = Server()
     server.listen()
@@ -301,48 +300,63 @@ if __name__ == '__main__':
     public_client_RSA = RSA.importKey(plaintext)
 
     server.countDH(public_client_RSA,server.rsa_private_key)
-    database = Database("example")
+    database = Database("PasswordDB")
   
-    authorized = False
-    #SWITCH 
-    message = server.receive_data_AES(True)
-    if isinstance(message,str) and "<DEFAULTLOGIN>" in message:
-        authorized, username = DefaultLogin()
-    elif isinstance(message,str) and "<REGISTRATION>" in message:
-        create_user()
-    # elif isinstance(message,str) and "<FACEAUTH>" in message:
-    #     authorized, username = Detect_Faces()
-    elif isinstance(message,str) and "<FACEREGISTER>" in message:
-        receive_faceloginData()
-        
+    while True:
+        authorized = False
+        #SWITCH 
+        message = server.receive_data_AES(True)
+        if isinstance(message,str) and "<DEFAULTLOGIN>" in message:
+            authorized, username = DefaultLogin()
+        elif isinstance(message,str) and "<REGISTRATION>" in message:
+            create_user()
+        # elif isinstance(message,str) and "<FACEAUTH>" in message:
+        #     authorized, username = Detect_Faces()
+        elif isinstance(message,str) and "<FACEREGISTER>" in message:
+            receive_faceloginData()
+            
 
 
-    if authorized:
-        choice = server.receive_data_AES(True)
-        if choice == "1":
-            #add method
-            #check which method he has
-            totp = True
-            face = False
-
-            server.send_data_AES(f"{totp}<>{face}")
-
-        elif choice == "2":
-            #access data
-            user = database.get_user_by_name(username)
-            data = user.data
-            server.send_data_AES(data)
-            print("authorized")
-        
-
-        while True:
-            data = server.receive_data_AES(True)
-
-            if data is not None:
-                print("dtaaa")   
+        if authorized:
+            choice = server.receive_data_AES(True)
+            if choice == "1":
+                #access data
                 user = database.get_user_by_name(username)
-                user.data = data
-                database.update_user(user)
+                data = user.data
+                server.send_data_AES(data)
+                print("authorized")
+            elif choice == "2":
+                #add method
+                #check which method he has
+                totp = True
+                face = False
 
-    else:
-        print("Not authorized")
+                server.send_data_AES(f"{totp}<>{face}")
+
+                method = server.receive_data_AES(True)
+
+                if method == "1":
+                    create_TOTP(username)
+                elif method == "2":
+                    server.receive_data_AES(True)
+                    receive_faceloginData()
+
+
+
+            elif choice == "3":
+                user = database.get_user_by_name(username)
+                AES_password = user.aes_password
+                server.send_data_AES(AES_password)
+                #pass recovery
+            
+
+            while True:
+                data = server.receive_data_AES(True)
+                if data is not None:
+                    print("dtaaa")   
+                    user = database.get_user_by_name(username)
+                    user.data = data
+                    database.update_user(user)
+
+        else:
+            print("Not authorized")

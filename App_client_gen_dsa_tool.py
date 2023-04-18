@@ -10,4 +10,4 @@ def generate_DSA(username,password):
 username = input("input your acounts username: ")
 password = input("input your acounts password: ")
 
-generate_DSA(username)
+generate_DSA(username,password)

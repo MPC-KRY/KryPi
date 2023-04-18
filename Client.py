@@ -1,18 +1,13 @@
 import socket
 import json
-from Test import KryPiShell
-from Client_ReadFace import FaceCapturer
 import NetworkUtils
-
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 import binascii
-
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import test_AES
 import CA
-import Client_DetectFace
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
@@ -25,7 +20,6 @@ class Client:
         self.sock = None
         self.json_data = None
         self.ECDH_key = None
-        self.AES_key = b"696d8716547961c3ae99f8da734250c8"
 
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,7 +31,6 @@ class Client:
         hash_RSA = self.receive_data()
         return pub_key_RSA, hash_RSA
     
-
     def close(self):
         self.sock.close()
 
@@ -52,7 +45,6 @@ class Client:
         if self.sock is not None:
             data = test_AES.encrypt(data, self.ECDH_key).encode()
             NetworkUtils.send_row(self.sock, data)
-
 
     def send_pictures_AES(self,data):
         if self.sock is not None:
@@ -109,32 +101,32 @@ class Client:
 
 
 
-if __name__ == '__main__':
-    client = Client()
-    client.connect()
+#if __name__ == '__main__':
+    # client = Client()
+    # client.connect()
 
-    json_data = client.receive_data_AES()
-    json_data = test_AES.decrypt(json_data, client.AES_key)
-    client.add_to_json_data(json_data)
-    try:
+    # json_data = client.receive_data_AES()
+    # json_data = test_AES.decrypt(json_data, client.AES_key)
+    # client.add_to_json_data(json_data)
+    # try:
         
-        #send_picture_data()
-        choice = input("choose")
-        if choice == "1":   
-            pass
-        else:
-            krypi = KryPiShell()
-            krypi.add_data(json_data)
-            krypi.cmdloop()
-            data = krypi.retrieve_data()
+    #     #send_picture_data()
+    #     choice = input("choose")
+    #     if choice == "1":   
+    #         pass
+    #     else:
+    #         krypi = KryPiShell()
+    #         krypi.add_data(json_data)
+    #         krypi.cmdloop()
+    #         data = krypi.retrieve_data()
 
-            data = test_AES.encrypt(json.dumps(data), client.AES_key)
-            client.send_data_AES(data)
+    #         data = test_AES.encrypt(json.dumps(data), client.AES_key)
+    #         client.send_data_AES(data)
 
-    except KeyboardInterrupt:
-        data = krypi.retrieve_data()
-        client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))
-        print("Exiting....")
+    # except KeyboardInterrupt:
+    #     data = krypi.retrieve_data()
+    #     client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))
+    #     print("Exiting....")
 
 
 

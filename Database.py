@@ -18,6 +18,7 @@ class User(Base):
     totp = Column(String)
     data = Column(String)
     user_certificate = Column(String)
+    aes_password = Column(String)
 
     def __repr__(self):
         return f"<User(username='{self.username}', hash={self.hash}, totp={self.totp}, email={self.email}, data={self.data})>"
@@ -50,6 +51,7 @@ class Database:
         user_db.salt = user.salt
         user_db.iteration = user.iteration
         user_db.user_certificate = user.user_certificate
+        user_db.aes_password = user.aes_password
 
         self.session.commit()
 
