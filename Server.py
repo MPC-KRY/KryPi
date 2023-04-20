@@ -21,6 +21,9 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import base64
 import secrets
+from ecdsa import SigningKey, NIST384p, VerifyingKey
+import string
+
 
 # generate a new RSA key pair
 
@@ -62,7 +65,7 @@ class Server:
             data = NetworkUtils.recv_row(self.conn)
             if len(data) != 0:
                 try:
-                    mes = test_AES.decrypt(data.decode(), self.ECDH_key)
+                    mes = test_AES.decrypt(data.decode(), self.ECDH_key,tur)
                     return mes
                 except:
                     return test_AES.decrypt(data.decode(), self.ECDH_key, False)
@@ -175,7 +178,34 @@ def DefaultLogin():
     user = database.get_user_by_name(username)
     hash = user.hash
 
-    if verify_password(username, password):
+
+    #credibility
+    user_verifying_key = user.user_certificate
+    user_verifying_key = VerifyingKey.from_pem(user_verifying_key.encode())
+
+    device_verifying_key = server.receive_data_AES(False)
+    hash_sig = server.receive_data_AES(False)
+
+    #true or false
+    verified_device_key = user_verifying_key.verify(hash_sig, device_verifying_key)
+
+    device_verifying_key = VerifyingKey.from_pem(device_verifying_key)
+
+    if device_verifying_key:
+        alphabet = string.ascii_letters
+        random_string = ''.join(random.choice(alphabet) for i in range(100))
+
+        server.send_data_AES(random_string)
+
+        signed_data = server.receive_data_AES(False)
+
+        #true or false, pokud plati tak mame hotove overeni ze data client spravne podepsal.
+        verified_signed_data = device_verifying_key.verify(signed_data,random_string.encode())
+
+
+
+
+    if verified_signed_data and verify_password(username, password) :
         print("Authenticated by password")
 #TODO koukne do DB jaky metody ma
         face,totp = True,True
@@ -244,6 +274,9 @@ def create_user():
         server.send_data_AES("User Created")
         #CRETIBILITY
 
+
+
+
         #receive empty data encrypted
         data = server.receive_data_AES(True)
         user = database.get_user_by_name(username)
@@ -308,6 +341,8 @@ if __name__ == '__main__':
             authorized, username = DefaultLogin()
         elif login_signup == "2":
             create_user()
+
+            
 
         if authorized:
             choice = server.receive_data_AES(True)

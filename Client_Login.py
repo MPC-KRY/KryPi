@@ -58,15 +58,24 @@ def totp_registration(username):
 def credibility(username):
     password = input("Input your certificate password: ")
     # uzivatel si open vygeneruje dalsi par klicu
+    sig = None
+    key = None
+    temp = None
+
     with open(f"private_key_DSA_{username}.pem", 'rb') as private_key:
         sig = SigningKey.from_pem(CA.decrypt(password.encode(), private_key.read()))
         key = sig.verifying_key
-        #with open(f"hash_{username}_verify.sig", 'rb') as hash_signature:
+        send_key = key.to_pem()
+        client.send_pictures_AES(send_key)
+
+    with open(f"hash_{username}_verify.sig", 'rb') as hash_signature:
+        client.send_pictures_AES(hash_signature.read())
 
 
-        #private_key.write(sig)
-
-    pass
+    random_data = client.receive_data_AES()
+    random_data = random_data.encode()
+    signed_data = sig.sign(random_data)
+    client.send_pictures_AES(signed_data)
 
 
 
@@ -102,7 +111,7 @@ def Register():
     
     message = client.receive_data_AES()
     print(message)
-    #cedibility(username)
+
 
 
 
@@ -130,6 +139,14 @@ def DefaultLogin():
     username = input("Username: ")
     pasw = input("Password: ")
     client.send_data_AES(f"{username}<>{pasw}")
+
+
+    #credibilty
+    credibility(username)
+
+    #poresit jestli je authorized nebo ne.
+
+
     try:
         face,totp = client.receive_data_AES().split("<>")
 

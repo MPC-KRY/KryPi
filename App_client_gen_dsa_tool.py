@@ -4,6 +4,7 @@ import CA
 
 def generate_DSA(username,password):
     CA.generate_to_file(f"public_key_DSA_{username}.pem",f"private_key_DSA_{username}.pem",password.encode())
+    
 
 
 
