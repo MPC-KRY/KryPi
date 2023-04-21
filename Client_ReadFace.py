@@ -42,9 +42,11 @@ class FaceCapturer:
 
     def capture_images(self,username):
         #dict1 = self.store_data()
-
         if (username.isalpha()):
-            cam = cv2.VideoCapture(1)
+            
+            cam = cv2.VideoCapture(0)
+        
+            
             detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
             sampleNum = 0
