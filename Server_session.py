@@ -8,25 +8,42 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import load_der_public_key
+import threading
+import Server_functions
 
 
 class Server:
-    def __init__(self):
-        self.host = "127.0.0.1"
-        self.port = 8080
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.socket = socket.socket()
+        
+    def start(self):
+        self.socket.bind((self.host, self.port))
+        self.socket.listen(5)
+        print("Server started on {}:{}".format(self.host, self.port))
+        
+        while True:
+            conn, addr = self.socket.accept()
+            new_thread = ClientThread(conn, addr)
+            new_thread.start()
+
+
+
+class ClientThread(threading.Thread):
+    def __init__(self,conn,host):
+        threading.Thread.__init__(self)
+        self.host = host
         self.socket = None
-        self.conn = None
+        self.conn = conn
         self.ECDH_key = None
         self.rsa_private_key = None
         self.rsa_public_key = None
         self.rsa_hash_sig_key = None
 
-    def listen(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind((self.host, self.port))
-        self.sock.listen()
-        print(f"server is listening on {self.host}:{self.port}")
-        self.conn, addr = self.sock.accept()
+    
+    def run(self):
+        Server_functions.run_procces(self)
 
     def send_data(self, data):
         if self.conn is not None:
@@ -104,5 +121,9 @@ class Server:
         Bob_derived_key = HKDF(hashes.SHA256(), size, None, b'', ).derive(Bob_shared_key)
 
         self.ECDH_key = binascii.b2a_hex(Bob_derived_key)[:32]
-        print("\nBob's derived key: ", binascii.b2a_hex(Bob_derived_key).decode())
+        print(f"\nSession's {str(self.host)} derived key: {binascii.b2a_hex(Bob_derived_key).decode()}", )
 
+
+if __name__ == '__main__':
+    server = Server("localhost",8080)
+    server.start()

@@ -19,7 +19,7 @@ def DetectFace():
     sampleNum = 0
 
  
-    cam = cv2.VideoCapture(1)
+    cam = cv2.VideoCapture(0)
     detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
     # Camera ON Everytime

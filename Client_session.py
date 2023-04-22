@@ -14,9 +14,9 @@ from Crypto.Cipher import PKCS1_OAEP
 
 
 class Client:
-    def __init__(self):
-        self.host = "127.0.0.1"
-        self.port = 8080
+    def __init__(self,host,port):
+        self.host = host
+        self.port = port
         self.sock = None
         self.json_data = None
         self.ECDH_key = None

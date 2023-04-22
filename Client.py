@@ -8,7 +8,7 @@ import getpass
 import CA
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from ecdsa import SigningKey, NIST384p, VerifyingKey
+from ecdsa import SigningKey, NIST384p
 import TOTP
 from Crypto.Hash import SHA256
 import secrets
@@ -37,24 +37,19 @@ def Face_login(name):
             print(message + "AGAIN MEASGE")
             if isinstance(message,str) and "<AGAIN>" in message:
                 client.send_data_string_AES("<OK>")
-                Face_login()
-                return False
+                continue
             if isinstance(message,str) and "<AUTHORIZED>" in message:
                 return True 
             
         except KeyboardInterrupt:
             print("ended")
-            break
-
-# TODO dodelat
+            return False
 
 def totp_registration(username):
     totp_seed = client.receive_data_string_AES()
     print("QR code of your TOTP seed")
     TOTP.totp_generate_qrcode(totp_seed,username)
     print(f"Your's TOTP_seed is: {totp_seed}")
-
-
 
 
 def credibility(username):
@@ -112,7 +107,7 @@ def Register():
             print("Wrong Username, At least 6 characters long and dont begin with number!!!")
         else: break
     while True:
-        password = input("Enter password:")
+        password = getpass("Enter password:")
         if len(password) < 3:
             print("Wrong Password, At least 3 characters long.")
         else: break
@@ -120,13 +115,15 @@ def Register():
         e_mail = input("Enter email:")
         if is_valid_email(e_mail): break
     while True:
-        decrypt_key = input("Enter vault d/encryption phrase: ")
+        decrypt_key = getpass("Enter vault d/encryption phrase: ")
         if len(password) > 3: break
         else: print("Wrong decrypt key")
 
 
     decrypt_key_hash = SHA256.new(decrypt_key.encode()).digest()
     recovery_string = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(20))
+
+    intput("!! Your vault recovery key will be show, make sure noone sees it. To continue press ENTER")
     print(f"""
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             This is your vault recovery key:
@@ -170,7 +167,7 @@ def Register():
 def DefaultLogin():
     while True:
         username = input("Username: ")
-        pasw = input("Password: ")
+        pasw = getpass("Password: ")
         client.send_data_string_AES(f"{username}<>{pasw}")
         message = client.receive_data_string_AES()
         if "<NOUSER>" in message:
@@ -270,11 +267,15 @@ def user_interface(username):
 
         json_data = Encryption_AES.decrypt(json_data, decrypt_key_hash)
         krypi = KryPiShell()
-        krypi.add_data(json_data)
-        krypi.cmdloop()
-        data = krypi.retrieve_data()
-        data = Encryption_AES.encrypt(json.dumps(data), decrypt_key_hash)
-        client.send_data_string_AES(data)
+        try:
+            krypi.add_data(json_data)
+            krypi.cmdloop()
+            data = krypi.retrieve_data()
+            data = Encryption_AES.encrypt(json.dumps(data), decrypt_key_hash)
+            client.send_data_string_AES(data)
+        except Exception:
+            client.send_data_string_AES("<ERROR>")
+
    
     elif choice == "2":
         #add method
@@ -310,10 +311,9 @@ def user_interface(username):
 if __name__ == '__main__':
     authorized = False
     try:
-        client = Client_session.Client()
+        client = Client_session.Client("localhost",8080)
         client.connect()
         key, hash = client.recieve_RSA()
-        print(key,hash)
         verified = client.verify_signature(key,hash)
         if verified:
             client_RSA_key = client.gen_RSA()
@@ -330,16 +330,17 @@ if __name__ == '__main__':
                 ciphertext += cipher.encrypt(chunk)
             client.send_data(ciphertext)
 
-        client.countDHEC(public_RSA_server_key,client_RSA_key)
-        authorized, username = Select()
+            client.countDHEC(public_RSA_server_key,client_RSA_key)
+        while True:
+            authorized, username = Select()
 
 
-        #if authentiation was succesfull
-        if authorized == True:
-            user_interface(username)
-        else:
-            print("not authorized")
-            #Select()
+            #if authentiation was succesfull
+            if authorized == True:
+                user_interface(username)
+            else:
+                print("not authorized")
+                continue
 
     except KeyboardInterrupt:
             #TODO expection
