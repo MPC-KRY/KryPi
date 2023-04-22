@@ -20,6 +20,6 @@ def count_RSA():
 
 
     #rsa_private_key.decrypt(data)  # TODO documentation says it is not save to use plain RSA encrypt
-    
-count_RSA()
+if __name__ == '__main__':
+    count_RSA()
     

@@ -1,29 +1,18 @@
-"""
-@author: Santhosh R
-"""
-import cv2,os
-import shutil
-import csv
-import numpy as np
-from PIL import Image, ImageTk
-import pandas as pd
-import time
+import cv2
 import pickle
 
-
-
-# This will make sure no duplicates exixts in profile.csv(using Pandas here)
 # Fuction to detect the face
+
 def DetectFace():
     print('Detecting Login Face')
     sampleNum = 0
-
- 
     cam = cv2.VideoCapture(0)
     detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
-    # Camera ON Everytime
     images = []
+    print("Taking pictures of your face, please look into the camera.")
+    # infinite cycle, where it scan for users face.
+    # when it scanned 3 pictures, it will exit and those pictures will be sent to server for detecting.
     while True:
         ret, frame = cam.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -36,23 +25,11 @@ def DetectFace():
             sampleNum +=1
             images.append(frame)
         
-        if len(images) > 2:
-            print("len 5")
-
+        if len(images) > 3:
+            print("Images of your face takes, please wait.")
             break
 
     cv2.imshow('Capturing Face for Login', frame)
-    cv2.destroyAllWindows()
     cv2.waitKey(1)
+    cv2.destroyAllWindows()
     return pickle.dumps(images)
-    
-    cam.release()
-
-
-
-
-# while True:
-#     try:
-#         print(DetectFace())
-#     except KeyboardInterrupt:
-#         break

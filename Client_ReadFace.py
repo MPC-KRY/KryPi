@@ -1,56 +1,22 @@
 import cv2
-import os
-import shutil
-import csv
-import numpy as np
-from PIL import Image, ImageTk
-import pandas as pd
 import pickle
-import struct
 
+
+
+# Class that scans users face, and sends that data to server.
 class FaceCapturer:
     def __init__(self):
         self.name = ''
-
         self.dict = {}
 
-    def store_data(self):
-        self.name = str(input("Enter Name: "))
-
-        
-        self.dict = {
-            'Name': self.name
-        }
-        
-        return self.name
-
-    def is_number(self, s):
-        try:
-            float(s)
-            return True
-        except ValueError:
-            pass
-     
-        try:
-            import unicodedata
-            unicodedata.numeric(s)
-            return True
-        except (TypeError, ValueError):
-            pass
-     
-        return False
-
     def capture_images(self,username):
-        #dict1 = self.store_data()
         if (username.isalpha()):
-            
             cam = cv2.VideoCapture(0)
-
             detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
             sampleNum = 0
             images = []
-            
+            # While loop, where it scans for users face, and exits once it got 70 pictures of its face.
             while True:
                 ret, img = cam.read()
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -78,10 +44,3 @@ class FaceCapturer:
                 print('Enter Proper ID')
             else:
                 print('Enter Proper ID and Name')
-
-
-if __name__ == '__main__':
-    face_capturer = FaceCapturer()
-    images = face_capturer.capture_images()
-    data = pickle.dumps(images)
-

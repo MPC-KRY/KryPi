@@ -16,7 +16,6 @@ from ecdsa import NIST384p, VerifyingKey
 import string
 import os
 
-
 def receive_faceloginData(server,database):
     username = server.receive_data_string_AES()
     print(f"Face registration for user {username}")
@@ -56,8 +55,6 @@ def Detect_Faces(server,database):
         else:
             return False, "notusername"
     
-
-
 def credibility(username,server,database):
     user = database.get_user_by_name(username)
     verified_signed_data = False
@@ -149,8 +146,7 @@ def DefaultLogin(server,database):
             server.send_data_string_AES("<NOTAUTHORIZED>")
             return False, "notauthorized"
         
-
-    #tvorba hesla
+#tvorba hesla
 def passGen(username,password,database):
     print(f"Generating password for user {username}")
     salt = bytes([random.randint(0,255) for _ in range(16)])
@@ -165,7 +161,6 @@ def passGen(username,password,database):
     user.iteration = iteration
     database.update_user(user)
 
-    
 #overeni hesla
 def verify_password(user, password,database):
     print(f"Verifing password for user {user}")
@@ -187,16 +182,12 @@ def create_user(server,database):
         passGen(username,password,database)
         server.send_data_string_AES("<USERCREATED>")
 
-
         #receive empty data encrypted
         data = server.receive_data_string_AES()
         user = database.get_user_by_name(username)
         user.data = data
         database.update_user(user)
         
-
-#TODO pripadne prespsat at posila bytes not sting
-
         #receive certificate and save
         vk = server.receive_data_string_AES()
         user = database.get_user_by_name(username)
@@ -225,7 +216,6 @@ def create_TOTP(username,server,database):
     database.update_user(user)
     server.send_data_string_AES(totp_seed)
 
-
 #decrypts by chunks
 def chunker(cipher,public_key_client_RSA):
     chunk_size = 256 # maximum length of ciphertext that can be decrypted is 256 bytes
@@ -234,10 +224,6 @@ def chunker(cipher,public_key_client_RSA):
         chunk = public_key_client_RSA[i:i+chunk_size]
         plaintext += cipher.decrypt(chunk)
     return plaintext
-
-
-
-
 
 def run_procces(server):
     print(f"New Connection from {server.host}")
@@ -271,10 +257,20 @@ def run_procces(server):
                 server.send_data_string_AES(data)
                 print("authorized")
             elif choice == "2":
-                #add method
                 #check which method he has
-                totp = True
-                face = False
+                user = database.get_user_by_name(username)
+                totp_exits = user.totp
+                if totp_exits is None: totp = False
+                else: totp = True
+
+                directory = os.listdir("TrainData")
+                for fname in directory:
+                    if os.path.isfile("TrainData" + os.sep + fname):
+                        if username in fname:
+                            face = True
+                            break
+                        else:  face = False
+                    else: face = False
 
                 server.send_data_string_AES(f"{totp}<>{face}")
 
@@ -294,16 +290,12 @@ def run_procces(server):
         
             while True:
                 data = server.receive_data_string_AES()
-                if "<ERROR>" in data:
-                    print("ERROR")
-                    break
                 if data is not None:
                     print("dtaaa")   
                     user = database.get_user_by_name(username)
                     user.data = data
                     database.update_user(user)
                     break
-     
         else:
             print("Not authorized")
             continue

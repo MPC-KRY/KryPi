@@ -18,31 +18,33 @@ import re
 
 def Face_Registration(username):
     Read_face = FaceCapturer()
+    input("Program will now scan your face. Press ENTER to continue")
     images = Read_face.capture_images(username)
     client.send_data_string_AES("<FACEREGISTER>")
     client.send_data_string_AES(username)
     client.send_data_bytes_AES(images)
     client.send_data_string_AES("<ENDFACEREGISTER>")
 
-
 def Face_login(name):
+    print("Face authentication login")
     client.send_data_string_AES("<FACEAUTH>")
     while True:
         try:
             client.receive_data_string_AES()
             client.send_data_string_AES(name)
+            input("Program will now start scanning your face. Press ENTER to continue.")
             clients_face = Client_DetectFace.DetectFace()
             client.send_data_bytes_AES(clients_face)
             message = client.receive_data_string_AES()
-            print(message + "AGAIN MEASGE")
             if isinstance(message,str) and "<AGAIN>" in message:
+                print("Server didnt recognized the user, scanning for faces again.")
                 client.send_data_string_AES("<OK>")
                 continue
             if isinstance(message,str) and "<AUTHORIZED>" in message:
                 return True 
             
         except KeyboardInterrupt:
-            print("ended")
+            print("Scanning ended, Face authentication now saved.")
             return False
 
 def totp_registration(username):
@@ -50,7 +52,6 @@ def totp_registration(username):
     print("QR code of your TOTP seed")
     TOTP.totp_generate_qrcode(totp_seed,username)
     print(f"Your's TOTP_seed is: {totp_seed}")
-
 
 def credibility(username):
     password = input("Input your certificate password: ")
@@ -89,7 +90,6 @@ def create_certificate(password,username):
         private_key.write(CA.encrypt(password.encode(), sk.to_pem()))
     return vk.to_pem()
 
-
 def is_valid_email(email):
     """Validate email format"""
     email_pattern = r'^[a-zA-Z0-9.%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$'
@@ -97,7 +97,6 @@ def is_valid_email(email):
         return True
     else:
         return False
-
 
 def Register():
     #TODO here i want AES KEY idk if generater or what
@@ -119,11 +118,10 @@ def Register():
         if len(password) > 3: break
         else: print("Wrong decrypt key")
 
-
     decrypt_key_hash = SHA256.new(decrypt_key.encode()).digest()
     recovery_string = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(20))
 
-    intput("!! Your vault recovery key will be show, make sure noone sees it. To continue press ENTER")
+    input("!! Your vault recovery key will be show, make sure noone sees it. To continue press ENTER")
     print(f"""
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             This is your vault recovery key:
@@ -149,7 +147,6 @@ def Register():
     data = Encryption_AES.encrypt(data, decrypt_key_hash)
     client.send_data_string_AES(data)
 
-#TODO pripadne prespsat at posila bytes not sting
     # creation of certificate
     print("Creating certificate")
     vk = create_certificate(password, username)
@@ -244,7 +241,6 @@ def Select():
             print("not correct choice")
             continue
 
-
 def password_recovery():
     AES_password = client.receive_data_string_AES()
     recovery_phrase = input("Recovery phrase: ")
@@ -255,62 +251,52 @@ def password_recovery():
 #TODO pregenerovani a vytvoreni noveho recovery klice
 
 def user_interface(username):
-    #if authentiation was succesfull
-    choice = input("1. Acces Data, 2. Add/renew auth. method, 3. pass. recovery")
+    while True:
+        #if authentiation was succesfull
+        choice = input("1. Acces Data, 2. Add/renew auth. method, 3. pass. recovery")
 
-    client.send_data_string_AES(choice)
-    if choice == "1":
-        json_data = client.receive_data_string_AES()
+        client.send_data_string_AES(choice)
+        if choice == "1":
+            json_data = client.receive_data_string_AES()
 
-        decrypt_key = input("Enter vault decryption phrase:")
-        decrypt_key_hash = SHA256.new(decrypt_key.encode()).digest()
+            decrypt_key = input("Enter vault decryption phrase:")
+            decrypt_key_hash = SHA256.new(decrypt_key.encode()).digest()
 
-        json_data = Encryption_AES.decrypt(json_data, decrypt_key_hash)
-        krypi = KryPiShell()
-        try:
+            json_data = Encryption_AES.decrypt(json_data, decrypt_key_hash)
+            krypi = KryPiShell()
             krypi.add_data(json_data)
             krypi.cmdloop()
             data = krypi.retrieve_data()
             data = Encryption_AES.encrypt(json.dumps(data), decrypt_key_hash)
             client.send_data_string_AES(data)
-        except Exception:
-            client.send_data_string_AES("<ERROR>")
 
-   
-    elif choice == "2":
-        #add method
-        totp, face = client.receive_data_string_AES().split("<>")
-        face = True if face == "True" else False
-        totp = True if totp == "True" else False
+        elif choice == "2":
+            #add method
+            totp, face = client.receive_data_string_AES().split("<>")
+            face = True if face == "True" else False
+            totp = True if totp == "True" else False
 
-        if face:
-            print("You have face authentication")
-        elif totp:
-            print("You have TOTP authentication")
+    
+            if face:
+                print("You have face authentication")
+            elif totp:
+                print("You have TOTP authentication")
 
-        method = input("Method: 1. TOTP, 2. Face: ")   
-        client.send_data_string_AES(method)
-        if method == "1":
-            totp_registration(username)
-        elif method == "2":
-            Face_Registration(username)
+            method = input("Method: 1. TOTP, 2. Face: ")   
+            client.send_data_string_AES(method)
+            if method == "1":
+                totp_registration(username)
+            elif method == "2":
+                Face_Registration(username)
 
-    elif choice == "3":
-        password_recovery()
-        user_interface(username)
-
-
-
-
-
-
-
-
-
+        elif choice == "3":
+            password_recovery()
+            continue
 
 if __name__ == '__main__':
     authorized = False
     try:
+        # select servers address and port
         client = Client_session.Client("localhost",8080)
         client.connect()
         key, hash = client.recieve_RSA()
@@ -320,7 +306,6 @@ if __name__ == '__main__':
             public_RSA_server_key = RSA.importKey(key)
             cipher = PKCS1_OAEP.new(public_RSA_server_key)
             temp = client_RSA_key.public_key().exportKey()
-            #overeni duveryhodnosti
 
 # TODO rozdeleni na chunky
             chunk_size = 190 # maximum length of plaintext that can be encrypted is 214 bytes
@@ -334,7 +319,6 @@ if __name__ == '__main__':
         while True:
             authorized, username = Select()
 
-
             #if authentiation was succesfull
             if authorized == True:
                 user_interface(username)
@@ -343,8 +327,5 @@ if __name__ == '__main__':
                 continue
 
     except KeyboardInterrupt:
-            #TODO expection
-            if authorized:
-                data = krypi.retrieve_data()
-                client.send_data_string_AES(Encryption_AES.encrypt(json.dumps(data), client.AES_key))
-                print("Exiting....")
+        print("No data save. Changes made were lost.")
+        print("Exiting....")
