@@ -19,7 +19,6 @@ def encrypt(message, key,):
 
     # Combine the IV and encrypted message, then convert to base64 and return as a string
     combined_message = iv + encrypted_message
-
     return base64.b64encode(combined_message).decode('utf-8')
 
     

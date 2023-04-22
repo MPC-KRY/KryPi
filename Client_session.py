@@ -106,35 +106,3 @@ class Client:
     def gen_RSA(self):
         rsa_keys = RSA.generate(2048)
         return rsa_keys
-
-
-
-#if __name__ == '__main__':
-    # client = Client()
-    # client.connect()
-
-    # json_data = client.receive_data_AES()
-    # json_data = test_AES.decrypt(json_data, client.AES_key)
-    # client.add_to_json_data(json_data)
-    # try:
-        
-    #     #send_picture_data()
-    #     choice = input("choose")
-    #     if choice == "1":   
-    #         pass
-    #     else:
-    #         krypi = KryPiShell()
-    #         krypi.add_data(json_data)
-    #         krypi.cmdloop()
-    #         data = krypi.retrieve_data()
-
-    #         data = test_AES.encrypt(json.dumps(data), client.AES_key)
-    #         client.send_data_AES(data)
-
-    # except KeyboardInterrupt:
-    #     data = krypi.retrieve_data()
-    #     client.send_data_AES(test_AES.encrypt(json.dumps(data), client.AES_key))
-    #     print("Exiting....")
-
-
-
