@@ -68,7 +68,12 @@ def sign_file(data_file: str, private_key_path: str = 'private_key.pem', hash_pa
     with open(data_file, 'rb') as data:
         with open(private_key_path, 'rb') as private_key:
             with open(hash_path, 'wb') as signature_file:
-                sig = SigningKey.from_pem(decrypt(password, private_key.read())).sign(data.read())
+                temp0 = private_key.read()
+                temp1 = decrypt(password, temp0)
+                temp2 = SigningKey.from_pem(temp1)
+                temp3 = data.read()
+                sig = temp2.sign(temp3)
+                print(sig)
                 signature_file.write(sig)
 
 
@@ -107,7 +112,7 @@ def main(args: list):
             exit(0)
 
     if "--generate" in args:
-        password = getpass("Enter password for encryption: ").encode()
+        password = input("Enter password for encryption: ").encode()
         try:
             if password == "":
                 generate_to_file()
@@ -119,7 +124,7 @@ def main(args: list):
 
     if "--sign" in args:
         try:
-            password = getpass("Enter password for encryption: ").encode()
+            password = input("Enter password for encryption: ").encode()
             if password == "":
                 if args.index("--sign") + 2 < len(args) and args[args.index("--sign") + 2] not in OPTIONS:
                     sign_file(args[args.index("--sign") + 1], hash_path=args[args.index("--sign") + 2])
@@ -150,5 +155,5 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    #sys.argv = ["asd", "--generate", "--sign", "public_key_RSA.pem", "--verify", "public_key_RSA.pem"]
+    # sys.argv = ["asdf", "--sign", "public_key_RSA.pem"]
     main(sys.argv[1:])
