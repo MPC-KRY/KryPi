@@ -74,7 +74,10 @@ def credibility(username):
             return False
             
     with open(f"hash_{username}_verify.sig", 'rb') as hash_signature:
-        client.send_data_bytes_AES(hash_signature.read())
+        temp = hash_signature.read()
+        client.send_data_bytes_AES(temp)
+        print(len(temp))
+        print(type(temp))
 
     random_data = client.receive_data_string_AES()
     random_data = random_data.encode()

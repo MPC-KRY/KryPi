@@ -64,11 +64,14 @@ def credibility(username):
     user_verifying_key = user.user_certificate
     user_verifying_key = VerifyingKey.from_pem(user_verifying_key.encode())
     device_verifying_key = server.receive_data_bytes_AES()
-    if "<ERROR>" in device_verifying_key.decode():
-        return False
+    # if "<ERROR>" in device_verifying_key.decode():
+    #     return False
     hash_sig = server.receive_data_bytes_AES()
+    print(len(hash_sig))   
+    print(type(hash_sig))
 
     #true or false
+    print(len(hash_sig), len(device_verifying_key))
     verified_device_key = user_verifying_key.verify(hash_sig, device_verifying_key)
     device_verifying_key = VerifyingKey.from_pem(device_verifying_key)
 
@@ -76,7 +79,7 @@ def credibility(username):
         alphabet = string.ascii_letters
         random_string = ''.join(random.choice(alphabet) for i in range(100))
         server.send_data_string_AES(random_string)
-        signed_data = server.receive_data_bytes_AES(False)
+        signed_data = server.receive_data_bytes_AES()
         #true or false, pokud plati tak mame hotove overeni ze data client spravne podepsal.
         verified_signed_data = device_verifying_key.verify(signed_data,random_string.encode())
     return verified_signed_data
@@ -84,6 +87,7 @@ def credibility(username):
 
 def DefaultLogin():
     while True:
+        authorized = False
         username, password = server.receive_data_string_AES().split("<>")
         print(username, password)
         user = database.get_user_by_name(username)

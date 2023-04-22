@@ -43,8 +43,8 @@ class Client:
 
     def send_data_string_AES(self, data):
         if self.sock is not None:
-            data = Encryption_AES.encrypt(data, self.ECDH_key).encode()
-            NetworkUtils.send_row(self.sock, data)
+            data = Encryption_AES.encrypt(data, self.ECDH_key)
+            NetworkUtils.send_row(self.sock, data.encode())
 
     def send_data_bytes_AES(self,data):
         if self.sock is not None:

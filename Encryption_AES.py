@@ -72,8 +72,9 @@ def decrypt2(encrypted_message, key):
 
     # Decrypt the message and unpad it
     decrypted_message = cipher.decrypt(encrypted_message[AES.block_size:])
+    unpadded_message = unpad(decrypted_message, AES.block_size)
 
     # Convert the decrypted message to a string and return it
-    return decrypted_message
+    return unpadded_message
 
 

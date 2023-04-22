@@ -58,7 +58,8 @@ class Server:
         if self.conn is not None:
             data = NetworkUtils.recv_row(self.conn)
             if len(data) != 0:
-                return Encryption_AES.decrypt2(data.decode(), self.ECDH_key)
+                mes = Encryption_AES.decrypt2(data.decode(), self.ECDH_key)
+                return mes
 
     def close(self):
         self.sock.close()
