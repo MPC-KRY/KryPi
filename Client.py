@@ -313,6 +313,7 @@ if __name__ == '__main__':
         client = Client_session.Client()
         client.connect()
         key, hash = client.recieve_RSA()
+        print(key,hash)
         verified = client.verify_signature(key,hash)
         if verified:
             client_RSA_key = client.gen_RSA()

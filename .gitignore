@@ -1,0 +1,12 @@
+__pycache__/Shell.cpython-311.pyc
+__pycache__/TOTP.cpython-311.pyc
+__pycache__/Server_session.cpython-311.pyc
+__pycache__/Server_LearnFace.cpython-311.pyc
+__pycache__/Server_DetectFace.cpython-311.pyc
+__pycache__/NetworkUtils.cpython-311.pyc
+__pycache__/Encryption_AES.cpython-311.pyc
+__pycache__/Database.cpython-311.pyc
+__pycache__/Client_session.cpython-311.pyc
+__pycache__/Client_ReadFace.cpython-311.pyc
+__pycache__/CA.cpython-311.pyc
+__pycache__/Client_DetectFace.cpython-311.pyc
