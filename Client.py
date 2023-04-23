@@ -4,7 +4,7 @@ import Client_DetectFace
 from Shell import KryPiShell
 import Encryption_AES
 import json
-import getpass
+from getpass import getpass
 import CA
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
