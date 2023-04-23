@@ -109,3 +109,25 @@ Po dokončení uprav uknočíte relaci příkazem
 KryPi> end
 ```
 čímž se vaše data uloží na server. (Pokud někdy v průběhu úprav či registrace dojte k chybě, či přerušení spojení nebudou provedeny žádné změny.)
+
+### Testovací uživatel
+Je tam vytvořen testovací uživatel:
+
+Uživatelské jméno: Jakub
+
+Email: jakub@gmail.com
+
+Heslo použité pro všechny přihlášení a podpisy: 123456789
+
+Klíč pro obnovu přístupu do databáze: O9u44GVb9LtkLyJScnxI
+
+TOTP seed: 4ZKMUOKRXPRCLTEK
+
+POZOR: Při stažení z GitHub repozitáře nebudou fungovat některé podpisy a klíče, proto je zapotřebí je smazat a přegenerovat.
+Nebo lze použít námi dodaný kód ve kterém by mělo vše fungovat.
+
+
+
+
+
+
