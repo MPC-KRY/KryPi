@@ -15,7 +15,8 @@ import secrets
 import string
 import re
 
-
+""" Description: A function used to create authentication using your face
+    Parameters: str : username -> the user to whom the face authentication is added"""
 def Face_Registration(username):
     Read_face = FaceCapturer()
     input("Program will now scan your face. Press ENTER to continue")
@@ -25,6 +26,9 @@ def Face_Registration(username):
     client.send_data_bytes_AES(images)
     client.send_data_string_AES("<ENDFACEREGISTER>")
 
+""" Description: A function used to authenticate user by facedetection, client side will scan face of the user and sand that data to server to authenticate
+    Parameters: str : name -> the user that will be authenticated by facedetection
+    Returns: boolean -> if the user is authenticated or not"""
 def Face_login(name):
     print("Face authentication login")
     client.send_data_string_AES("<FACEAUTH>")
@@ -46,13 +50,19 @@ def Face_login(name):
         except KeyboardInterrupt:
             print("Scanning ended, Face authentication now saved.")
             return False
-
+""" Description: A function used to reccive TOTP authentication method for user, the function recive TOTP seed and display it to user by SEED and QR code
+    Parameters: str : username -> the user to whom the TOTP authentication is added
+    """
 def totp_registration(username):
     totp_seed = client.receive_data_string_AES()
     print("QR code of your TOTP seed")
     TOTP.totp_generate_qrcode(totp_seed,username)
     print(f"Your's TOTP_seed is: {totp_seed}")
 
+""" Description: Function which is used to verify the trustworthiness of the device, the client sends the public DSA key and the signed hash.sig file to the server, then receives random data from the server, which it signs and the server verifies that it is communicating with the correct authenticated client.
+    Parameters: str : username -> the user whom credibility is beeing check
+    Returns: boolean -> if the user is trustworthy or not
+    """
 def credibility(username):
     password = input("Input your certificate password: ")
     # uzivatel si open vygeneruje dalsi par klicu
@@ -80,7 +90,11 @@ def credibility(username):
     signed_data = sig.sign(random_data)
     client.send_data_bytes_AES(signed_data)
     return True
-
+""" Description: Function that is used for generating pair of keys for Verification of user.
+    Parameters: str : password -> the password for pem file
+                str : username -> username of the user
+    Returns: pem : vk -> public key of the user
+    """
 def create_certificate(password,username):
     sk = SigningKey.generate(curve=NIST384p)  # uses NIST192p
     vk = sk.verifying_key
@@ -90,6 +104,10 @@ def create_certificate(password,username):
         private_key.write(CA.encrypt(password.encode(), sk.to_pem()))
     return vk.to_pem()
 
+""" Description: Function that check if the format of email is corect by regex
+    Parameters: str : email -> the email that is being checked
+    Returns: boolean -> True if the email is valid, False if not
+    """
 def is_valid_email(email):
     """Validate email format"""
     email_pattern = r'^[a-zA-Z0-9.%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$'
@@ -98,6 +116,9 @@ def is_valid_email(email):
     else:
         return False
 
+""" Description: Function used to create a user, the user enters name, password, email and vault key. A backup password is created for the recovery vault key. This information is then sent to the server. Next, an empty password database is created and this is also sent encrypted to the server, along with the user's public key for confidentiality verification. Finally, the user can choose whether they want to authenticate using TOTP or FaceDetection.
+    Returns: boolean -> False if the user is allready in database or is not created
+    """
 def Register():
     #TODO here i want AES KEY idk if generater or what
     while True:
@@ -123,11 +144,11 @@ def Register():
 
     input("!! Your vault recovery key will be show, make sure noone sees it. To continue press ENTER")
     print(f"""
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             This is your vault recovery key:
                 {recovery_string}
-        (save it somewerher you wil use this for vault recovery)
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+(save it somewhere save, you will need it for recovery)
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     """)
 
     hashed_recovery_key = SHA256.new(recovery_string.encode()).digest()
@@ -160,7 +181,10 @@ def Register():
     elif choice == 2:
         #register FACE
         Face_Registration(username)
-    
+
+""" Description: Function used for user login. It sends username and password to the server and calls the function for authentication of the device. If login and trust is OK, it finds out the two factor authentication options from the server and selects one of them.
+    Returns: boolean + str : username -> True if the user is authenticated and verified, username of the user that has been verified and authenticated
+    """
 def DefaultLogin():
     while True:
         username = input("Username: ")
@@ -175,7 +199,7 @@ def DefaultLogin():
 
         message = client.receive_data_string_AES()
         if "<PASSWORDVERIFIED>" in message:
-            print("You are password verified and device verified")
+            print("Your password is verified and device is verified")
 
             face,totp = client.receive_data_string_AES().split("<>")
             face = True if face == "True" else False
@@ -220,6 +244,9 @@ def DefaultLogin():
             print("wrong pass or username")
             continue
 
+""" Description: Function used for input of user, user can Login or Sign up
+    Returns: boolean + str : username -> True if the user is authenticated and verified, username of the user that has been verified and authenticated
+    """
 def Select():
     while True:
         authorized = True
@@ -241,6 +268,8 @@ def Select():
             print("not correct choice")
             continue
 
+""" Description: That is used for vault key recovery, server send Encrypted vault key by recovery key to user, he will decrypt it and display vaul key.
+    """
 def password_recovery():
     AES_password = client.receive_data_string_AES()
     recovery_phrase = input("Recovery phrase: ")
@@ -250,6 +279,9 @@ def password_recovery():
     print(AES_password)
 #TODO pregenerovani a vytvoreni noveho recovery klice
 
+""" Description: Function that is used for interaction with user when is he logged to the server and is Authenticated and Verified. The user can choose from Accesing data, Adding or refreshing TwoFactorAuth and password recovery.
+    Parameters: str : username -> the username of the logged user
+    """
 def user_interface(username):
     while True:
         #if authentiation was succesfull
@@ -293,6 +325,9 @@ def user_interface(username):
             password_recovery()
             continue
 
+
+""" Description: MAIN function that will connect user to server, Verify the server and count the ECDH shared key for Encrypted communication.
+    """
 if __name__ == '__main__':
     authorized = False
     try:
