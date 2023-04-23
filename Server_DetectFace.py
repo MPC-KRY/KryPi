@@ -1,6 +1,15 @@
 import cv2,os
 
 
+
+"""
+Description: Function that received images of users face and compares it to trained dataset. 
+             If opencv library recognizes that user it return True value. Otherwise it return False as not recognized.
+Parameters: array : images -> image data of persons face who want to login.
+            str : name2 -> name of the user who wants to log in.
+            int : Id -> Id of user who wants to log in.
+Returns: boolean : True/False if it recognized user or not.
+"""
 def DetectFace(images,name2,Id):
     print('Detecting Login Face')
     recognizer = cv2.face.LBPHFaceRecognizer_create()  #cv2.createLBPHFaceRecognizer()
@@ -17,6 +26,13 @@ def DetectFace(images,name2,Id):
         for (x, y, w, h) in faces:
             Face_Id = 'Not detected'
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
+
+            """
+            Core variable: distance_from_known_user -> value of that variable determines how much scanned persons face matches learned face of that user. 
+                           The lower the number the similar the faces are and the more probalibity its correct user.
+                           Range is not from 0 to 100, so we put it to 40, which should be enough to recognise user,
+                           when we take into consideration the quality of webcam and the low number of pictures it had to train from.       
+            """
             predicted_Id, distance_from_known_user = recognizer.predict(gray[y:y + h, x:x + w])
             print(predicted_Id, distance_from_known_user)
             if (distance_from_known_user < 40):
@@ -24,7 +40,7 @@ def DetectFace(images,name2,Id):
                     name = name2
                 Predicted_name = str(name)
                 Face_Id = Predicted_name
-                print(f"{name} {Id} {distance_from_known_user} {Face_Id}")
+                print(f"User: {name} ID:{Id} Match(Lower = better): {distance_from_known_user}")
             else:
                 Predicted_name = 'Unknown'
                 Face_Id = Predicted_name

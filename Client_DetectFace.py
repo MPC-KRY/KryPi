@@ -1,7 +1,7 @@
 import cv2
 import pickle
 
-# Fuction to detect the face
+# Function to detect the face
 
 def DetectFace():
     print('Detecting Login Face')

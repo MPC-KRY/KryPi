@@ -50,6 +50,7 @@ def Face_login(name):
         except KeyboardInterrupt:
             print("Scanning ended, Face authentication now saved.")
             return False
+
 """ Description: A function used to reccive TOTP authentication method for user, the function recive TOTP seed and display it to user by SEED and QR code
     Parameters: str : username -> the user to whom the TOTP authentication is added
     """
@@ -308,7 +309,6 @@ def user_interface(username):
             face = True if face == "True" else False
             totp = True if totp == "True" else False
 
-    
             if face:
                 print("You have face authentication")
             elif totp:
@@ -326,8 +326,9 @@ def user_interface(username):
             continue
 
 
-""" Description: MAIN function that will connect user to server, Verify the server and count the ECDH shared key for Encrypted communication.
-    """
+""" 
+Description: MAIN function that will connect user to server, Verify the server and count the ECDH shared key for Encrypted communication.
+"""
 if __name__ == '__main__':
     authorized = False
     try:
@@ -342,7 +343,6 @@ if __name__ == '__main__':
             cipher = PKCS1_OAEP.new(public_RSA_server_key)
             temp = client_RSA_key.public_key().exportKey()
 
-# TODO rozdeleni na chunky
             chunk_size = 190 # maximum length of plaintext that can be encrypted is 214 bytes
             ciphertext = b''
             for i in range(0, len(temp), chunk_size):
@@ -362,5 +362,5 @@ if __name__ == '__main__':
                 continue
 
     except KeyboardInterrupt:
-        print("No data save. Changes made were lost.")
+        print("No data saved. Changes made were lost.")
         print("Exiting....")

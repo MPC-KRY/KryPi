@@ -1,9 +1,7 @@
 import struct
 import gzip
-import pickle
 
 RECV_SIZE = 512
-
 
 def pack_data(*args):
     """

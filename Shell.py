@@ -17,12 +17,18 @@ class KryPiShell(cmd.Cmd):
     is_authenticated = False
     socket = None
 
-    # Function that add Users data infor memory for user to work with them.
+
+    """
+    Description: Function used to add received users data from server to memory
+    Parameters: json : data -> users vault data, which contains his entries.
+    """
     def add_data(self,data):
         self.json_data = json.loads(data)
         self.edit_ids()
         
-    # Function that updates list of available IDs and Titles.
+    """
+    Description: Function used edit list variables for searching and finding entries.
+    """
     def edit_ids(self):
         self.IDs = []
         self.Titles = []
@@ -35,9 +41,10 @@ class KryPiShell(cmd.Cmd):
     def retrieve_data(self):
         return self.json_data
          
-    # Function for adding entries.
-    # lets you add new entries, with basic informations
-    # Title, Username, Password, Source, ID
+    """
+    Description: Function used for adding entries to users vault.
+    Parameters: One entry contains these information: Username, Password, Title of entry, Source and ID.
+    """
     def do_add(self, arg):
         """Add a new entry
         add [title]"""
@@ -100,10 +107,11 @@ class KryPiShell(cmd.Cmd):
                         print(str(i["id"])  +"  " + str(i["title"]))
         except KeyboardInterrupt:
             print("Canceled...")
-                 
-    # Function for showing data entries
-    # It prints out specified entry.
-    # be careful - password is also shown
+
+    """
+    Description: Function used to show users entry on screen.
+    Parameters: str/int : arg -> either ID or title of entry which will be shown
+    """
     def do_show(self, arg):
         """Get a password entry
             get [id] or get [title]
@@ -136,9 +144,12 @@ class KryPiShell(cmd.Cmd):
         except KeyboardInterrupt:
             print("Canceled...")
 
-    # Function for listing all current entries 
-    # it lists only id and title.
-    def do_list(self, arg):
+    """
+    Description: Function used to list all current users entries inside his vault.
+                It lists only Id and title of users entries.
+    Parameters: None
+    """
+    def do_list(self,arg):
         """ List all password entries, it's titles"""
         self.edit_ids()
         if len(self.json_data) == 0:
@@ -148,9 +159,13 @@ class KryPiShell(cmd.Cmd):
             for i in self.json_data:
                 print( str(i["id"])  +"  " + str(i["title"]))
         
-    # Function for editing users entries.
-    # This function lets you edit your entries. 
-    # When you dont want to change anything, leave the variable empty and press ENTER.      
+
+    """
+    Description: Function used to edit existing users entries.
+                 User can all four information of entry - Username,Password,Title,Source.
+                 If no change is wanted, leave the field empty and press ENTER.
+    Parameters: str/int : arg -> ID or Title of entry to be edited.
+    """
     def do_edit(self, arg):
         """ Edit password entry
             edit [id] or edit [title]
@@ -189,8 +204,11 @@ class KryPiShell(cmd.Cmd):
         except KeyboardInterrupt:
             print("Canceled...")
 
-    # Function for deleting users entries.
-    # Remaining entry IDs are reordered so it's nice in order
+    """
+    Description: Function used to delete entries from users vault.
+                 ID's or remaining entries will be reordered to be in order beginning from 1.
+    Parameters: str/int : arg -> ID or Title of entry to be deleted.
+    """
     def do_delete(self, arg):
         """ Delete password entry
             delete [id] or delete [title]
@@ -216,7 +234,10 @@ class KryPiShell(cmd.Cmd):
         except KeyboardInterrupt:
             print("Canceled...")
 
-    # This function gets entry and saves its password into clipboard without showing it on screen
+    """
+    Description: Function used to copy entry password into clipboard without showing it on screen.
+    Parameters: str/int : arg -> ID or Title of entry's password to be copied into clipboard.
+    """
     def do_get(self,arg):
         """ Copy password to clipboard without showing it"""
         self.edit_ids()
@@ -234,19 +255,36 @@ class KryPiShell(cmd.Cmd):
         else:
             print("No entry with that name or ID")
         
-    # function which exits out of KryPi shell
+    """
+    Description: Function used exit from KryPi shell.
+    Parameters: None
+    """
     def do_end(self, arg):
         """Exit KryPi"""
         print("Exiting KryPi...")
         return True
     
-    # Function for when user presses enter on empty line        
+    
+    """
+    Description: Function used to when user presses enter on empty or wrong command.
+    """    
     def emptyline(self):
          pass
 
-# Function for generating new passwords
-def generate_password(delka):
+
+"""
+Description: Function used for generating users password when choosen.
+             Generated Letters, Numbers and Special characters.
+Parameters: int : length -> Length of generated password.
+"""
+def generate_password(length):
     pwd = ""
-    for i in range(delka):
+    for i in range(length):
         pwd += ''.join(secrets.choice(string.ascii_letters + string.digits +string.punctuation))
     return pwd
+
+
+
+if __name__ == '__main__':
+    krypi = KryPiShell()
+    krypi.cmdloop()

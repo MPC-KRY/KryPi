@@ -3,7 +3,9 @@ import pickle
 
 
 
-# Class that scans users face, and sends that data to server.
+"""
+Description: Class that scan users face, and sens that data to the server.
+"""
 class FaceCapturer:
     def __init__(self):
         self.name = ''

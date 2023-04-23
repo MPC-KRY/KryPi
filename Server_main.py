@@ -43,6 +43,10 @@ class ClientThread(threading.Thread):
         self.rsa_public_key = None
         self.rsa_hash_sig_key = None
 
+
+    """
+    Description: Function that is run everytime new client connects.
+    """
     def run(self):
         Server_functions.run_procces(self)
 
@@ -158,6 +162,10 @@ class ClientThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    #specify ip and port
+    """
+    Description: Main Function, that is user to start Server of database.
+    Parameters: str : addr -> address on which will the server function.
+                int : port -> port on which will the server function.
+    """
     server = Server("localhost",8080)
     server.start()

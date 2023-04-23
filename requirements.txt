@@ -1,0 +1,10 @@
+cryptography==40.0.2
+ecdsa==0.18.0
+numpy==1.24.3
+opencv_python==4.7.0.72
+Pillow==9.5.0
+pycryptodome==3.17
+pyotp==2.8.0
+pyperclip==1.8.2
+qrcode_terminal==0.8
+SQLAlchemy==2.0.10

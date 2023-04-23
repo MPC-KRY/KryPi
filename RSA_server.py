@@ -1,9 +1,5 @@
 from Crypto.PublicKey import RSA
-#from src.CryptoBase import CryptoBase
-import struct
-#from src.Cert_authority.CertificationAuthority import encrypt, decrypt
 from getpass import getpass
-
 
 def count_RSA():
     RSA_LENGTH = 2048
@@ -17,9 +13,6 @@ def count_RSA():
         private_key_file.write(private_key)
 
 
-
-
-    #rsa_private_key.decrypt(data)  # TODO documentation says it is not save to use plain RSA encrypt
 if __name__ == '__main__':
     count_RSA()
     
