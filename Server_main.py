@@ -12,6 +12,9 @@ import threading
 import Server_functions
 
 
+""" 
+Description: This is the Server class, for creating the server object. It is used for running the server, sending and recieving plaintext or encrypted data. And importing/encrypting RSA, generating ECDH.
+"""
 class Server:
     def __init__(self, host, port):
         self.host = host
@@ -43,25 +46,43 @@ class ClientThread(threading.Thread):
     def run(self):
         Server_functions.run_procces(self)
 
+    """ 
+    Description: Send plaintext data
+    Parameters: data -> data that will be send
+    """
     def send_data(self, data):
         if self.conn is not None:
             NetworkUtils.send_row(self.conn, data)
 
+    """ 
+    Description: Send AES encrypted data 
+    Parameters: data -> string data that will be send
+    """
     def send_data_string_AES(self, data):
         if self.conn is not None:
             data = Encryption_AES.encrypt(data, self.ECDH_key)
             NetworkUtils.send_row(self.conn, data.encode())
 
+    """ 
+    Description: Send AES encrypted data 
+    Parameters: data -> bytes data that will be send
+    """
     def send_data_bytes_AES(self,data):
         if self.conn is not None:
             data = Encryption_AES.encrypt2(data, self.ECDH_key)
             NetworkUtils.send_row(self.conn, data)
 
+    """ 
+    Description: Receive plaintext data 
+    """
     def receive_data(self):
         if self.conn is not None:
             data = NetworkUtils.recv_row(self.conn)
             return data
 
+    """ 
+    Description: Receive string AES Encrypted data
+    """
     def receive_data_string_AES(self):
         if self.conn is not None:
             data = NetworkUtils.recv_row(self.conn)
@@ -69,6 +90,9 @@ class ClientThread(threading.Thread):
                 mes = Encryption_AES.decrypt(data.decode(), self.ECDH_key)
                 return mes
 
+    """ 
+    Description: Receive bytes AES Encrypted data
+    """
     def receive_data_bytes_AES(self):
         if self.conn is not None:
             data = NetworkUtils.recv_row(self.conn)
@@ -79,6 +103,9 @@ class ClientThread(threading.Thread):
     def close(self):
         self.sock.close()
 
+    """ 
+    Description: Used for reading RSA public, private keys and signed data.
+    """
     def import_RSA(self):
         with open("private_key_RSA.pem", 'rb') as private_key_file:
             self.rsa_private_key = RSA.importKey(private_key_file.read())
@@ -89,13 +116,21 @@ class ClientThread(threading.Thread):
         with open("hash.sig", 'rb') as hash_file:
             self.rsa_hash_sig_key = hash_file.read()
 
+    """ 
+    Description: Send RSA public key and signed hash.
+    """
     def send_keys_RSA(self):
         self.send_data(self.rsa_public_key)
         self.send_data(self.rsa_hash_sig_key)
 
     def decrypt_RSA(self,data):
         return self.rsa_private_key.decrypt(data)
-    
+
+    """ 
+    Description: A shared key is negotiated between the server and the client for AES communication. Shared parameters are encrypted by RSA.
+    Parameters: pub_key_server -> RSA server public key
+                priv_key_client -> RSA client private key
+    """
     def countDH(self, pub_key_client, priv_key_server):
         cipher_server = PKCS1_OAEP.new(priv_key_server)
         cipher_client = PKCS1_OAEP.new(pub_key_client)

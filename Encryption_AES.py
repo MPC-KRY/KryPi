@@ -3,7 +3,12 @@ from Crypto.Util.Padding import pad, unpad
 import base64
 
 
-def encrypt(message, key,):
+""" 
+Description: This function is used for Encrypting any string data with AES with CBC mode.
+Parameters: str : message -> string data that will be encrypted
+            bytes : key -> key that will be used for encryption
+"""
+def encrypt(message, key):
     # Convert the key and message to bytes
     message = message.encode('utf-8')
 
@@ -21,10 +26,12 @@ def encrypt(message, key,):
     combined_message = iv + encrypted_message
     return base64.b64encode(combined_message).decode('utf-8')
 
-    
+""" 
+Description: This function is used for Encrypting any bytes data with AES with CBC mode.
+Parameters: bytes : message -> bytes data that will be encrypted
+            bytes : key -> key that will be used for encryption
+"""
 def encrypt2(message, key):
-    # Convert the key and message to bytes
-    message = message
 
     # Pad the message to a multiple of 16 bytes
     padded_message = pad(message, AES.block_size)
@@ -42,7 +49,12 @@ def encrypt2(message, key):
     return base64.b64encode(combined_message)
 
 
-
+""" 
+Description: This function is used for Decrypting any string data with AES with CBC mode.
+Parameters: bytes : encrypted_message -> bytes data that will be decrypted
+            bytes : key -> key that will be used for encryption
+Returns: bytes : unpadded_message -> decrypted message in string
+"""
 def decrypt(encrypted_message, key):
     # Convert the key and encrypted message to bytes
     encrypted_message = base64.b64decode(encrypted_message)
@@ -59,7 +71,12 @@ def decrypt(encrypted_message, key):
     # Convert the decrypted message to a string and return it
     return unpadded_message.decode('utf-8')
 
-
+""" 
+Description: This function is used for Decrypting any bytes data with AES with CBC mode.
+Parameters: bytes : message -> bytes data that will be encrypted
+            bytes : key -> key that will be used for encryption
+Returns: bytes : unpadded_message -> decrypted message in bytes
+"""
 def decrypt2(encrypted_message, key):
     # Convert the key and encrypted message to bytes
     encrypted_message = base64.b64decode(encrypted_message)
@@ -73,7 +90,6 @@ def decrypt2(encrypted_message, key):
     decrypted_message = cipher.decrypt(encrypted_message[AES.block_size:])
     unpadded_message = unpad(decrypted_message, AES.block_size)
 
-    # Convert the decrypted message to a string and return it
     return unpadded_message
 
 

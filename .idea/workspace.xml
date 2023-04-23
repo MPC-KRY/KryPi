@@ -6,17 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="aea68d58-cd03-4e30-87f7-cffb0667eba9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hash.sig" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/hash_vojta_verify.sig" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/private_key.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/private_key_DSA_vojta.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/private_key_RSA.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/private_key_vojta.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public_key.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public_key_DSA_vojta.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public_key_RSA.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public_key_vojta.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/App_client_gen_dsa_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/App_client_gen_dsa_tool.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App_client_sign_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/App_client_sign_user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client_session.py" beforeDir="false" afterPath="$PROJECT_DIR$/Client_session.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Encryption_AES.py" beforeDir="false" afterPath="$PROJECT_DIR$/Encryption_AES.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Server_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Server_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TOTP.py" beforeDir="false" afterPath="$PROJECT_DIR$/TOTP.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

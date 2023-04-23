@@ -16,6 +16,11 @@ from ecdsa import NIST384p, VerifyingKey
 import string
 import os
 
+""" 
+Description: Function that is used for saving the Client Face data on the server
+Parameters: server -> object of the server
+            database -> database of the users on server
+"""
 def receive_faceloginData(server,database):
     username = server.receive_data_string_AES()
     print(f"Face registration for user {username}")
@@ -33,6 +38,13 @@ def receive_faceloginData(server,database):
     if isinstance(end,str) and "<ENDFACEREGISTER>" in end:
         Server_LearnFace.TrainImages(Id,username)
 
+""" 
+Description: Function that is used for user authentication by his Face
+Parameters: server -> object of the server
+            database -> database of the users on server
+Return:     boolean -> If the user is authenticated by the FaceLogin
+            str -> The user that was authenticated
+"""
 def Detect_Faces(server,database):
     while True:
         server.send_data_string_AES("TAG")
@@ -54,7 +66,14 @@ def Detect_Faces(server,database):
             return True, username
         else:
             return False, "notusername"
-    
+
+""" 
+Description: Function that is used for Verifing the user. Server will verify the hash.sig and then sends random data to Client and Client will sign them again and send then to server.
+Parameters: username -> username of the user who is being Verified
+            server -> object of the server
+            database -> database of the users on server
+Return:     boolean -> If the user correctly signed data True, else False
+"""
 def credibility(username,server,database):
     user = database.get_user_by_name(username)
     verified_signed_data = False
@@ -76,7 +95,13 @@ def credibility(username,server,database):
         verified_signed_data = device_verifying_key.verify(signed_data,random_string.encode())
     return verified_signed_data
 
-
+""" 
+Description: Function that is used for verification of Client login. Firstly the server will verify the username and password, then he will verify credibility of the user´s device. And offer client TwoFactor method, client will chose one and send TOTP or Face data to the server. Server will authenticates the user.
+Parameters: server -> object of the server
+            database -> database of the users on server
+Return:     boolean -> If the user is authenticated by the FaceLogin
+            str -> The user that was authenticated
+"""
 def DefaultLogin(server,database):
     while True:
         authorized = False
@@ -145,8 +170,13 @@ def DefaultLogin(server,database):
         else:
             server.send_data_string_AES("<NOTAUTHORIZED>")
             return False, "notauthorized"
-        
-#tvorba hesla
+
+""" 
+Description: This Function is used for hashing and salting the user´s password. And saving the hash, slat, iterations  to database
+Parameters: username -> username of the user
+            password -> plaintext password
+            database -> database of the users
+"""
 def passGen(username,password,database):
     print(f"Generating password for user {username}")
     salt = bytes([random.randint(0,255) for _ in range(16)])
@@ -161,7 +191,12 @@ def passGen(username,password,database):
     user.iteration = iteration
     database.update_user(user)
 
-#overeni hesla
+""" 
+Description: This Function is used for hashing and salting the user´s password. And saving the hash, slat, iterations  to database
+Parameters: username -> username of the user
+            password -> plaintext password
+            database -> database of the users
+"""
 def verify_password(user, password,database):
     print(f"Verifing password for user {user}")
     key_size = 128
@@ -171,7 +206,11 @@ def verify_password(user, password,database):
     key = PBKDF2(password, salt, dkLen=key_size, count=iteration, hmac_hash_module=SHA256)
     return user.hash == key
 
-#vytvoreni uzivatele
+""" 
+Description: This Function is for creating the user. Server will receive username, password, email, encrypted vaultkey and create user. After the encrypted vault and user certificate is added. Finally is called another function for adding TOTP seed or pictures to server/database.
+Parameters: server -> object of server
+            database -> database of the users
+"""
 def create_user(server,database):
     print("Creating user")
     username, password, email, AES_password = server.receive_data_string_AES().split("<>")
@@ -205,7 +244,12 @@ def create_user(server,database):
         print("User exists, not created")
         server.send_data_string_AES("<USERNOTCREATED>")
 
-#tvorba TOTP
+""" 
+Description: This function is for generating TOTP seed, saving it in database and sending it to user.
+Parameters: username -> username of user in database
+            server -> object of server
+            database -> database of the users
+"""
 def create_TOTP(username,server,database):
     print(f"Generating TOTP for user {username}")
     random_bytes = secrets.token_bytes(20)
@@ -216,7 +260,11 @@ def create_TOTP(username,server,database):
     database.update_user(user)
     server.send_data_string_AES(totp_seed)
 
-#decrypts by chunks
+""" 
+Description: This function is used for 
+Parameters: cipher -> 
+            public_key_client_RSA -> 
+"""
 def chunker(cipher,public_key_client_RSA):
     chunk_size = 256 # maximum length of ciphertext that can be decrypted is 256 bytes
     plaintext = b''
@@ -225,6 +273,10 @@ def chunker(cipher,public_key_client_RSA):
         plaintext += cipher.decrypt(chunk)
     return plaintext
 
+""" 
+Description: This function is used for running the server process and then handeling the clients inputs like login in, signing up, and so on...
+Parameters: server -> object of server
+"""
 def run_procces(server):
     print(f"New Connection from {server.host}")
     server.import_RSA()
