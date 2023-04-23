@@ -47,7 +47,7 @@ class KryPiShell(cmd.Cmd):
     """
     def do_add(self, arg):
         """Add a new entry
-        add [title]"""
+        Example: add [title]"""
         self.edit_ids()
         try:
             if arg:  title = arg
@@ -94,7 +94,10 @@ class KryPiShell(cmd.Cmd):
                     --------------------------------     
                     """)
                 largest_id = 0
-                largest_id = self.IDs[-1]
+                if len(self.IDs) == 0:
+                    largest_id = 0
+                else:
+                    largest_id = self.IDs[-1]
                 newEntry = {"title": title, "id":largest_id + 1,"username":username, "password":password, "source":source}
                 
                 choice = input("Final - are credentials right? [Y/n]: ")
@@ -113,8 +116,8 @@ class KryPiShell(cmd.Cmd):
     Parameters: str/int : arg -> either ID or title of entry which will be shown
     """
     def do_show(self, arg):
-        """Get a password entry
-            get [id] or get [title]
+        """Show a password entry
+           Example: get [id] or get [title]
         """
         self.edit_ids()
         try:
@@ -150,7 +153,9 @@ class KryPiShell(cmd.Cmd):
     Parameters: None
     """
     def do_list(self,arg):
-        """ List all password entries, it's titles"""
+        """ List all password entries
+        Example: list
+        """
         self.edit_ids()
         if len(self.json_data) == 0:
             print("You have no entries yet.")
@@ -158,8 +163,6 @@ class KryPiShell(cmd.Cmd):
             print("Printing entries of passwords...")
             for i in self.json_data:
                 print( str(i["id"])  +"  " + str(i["title"]))
-        
-
     """
     Description: Function used to edit existing users entries.
                  User can all four information of entry - Username,Password,Title,Source.
@@ -168,8 +171,7 @@ class KryPiShell(cmd.Cmd):
     """
     def do_edit(self, arg):
         """ Edit password entry
-            edit [id] or edit [title]
-            Can edit in CLI or in notepad(on windows) [L/e] 
+            Example: edit [id] or edit [title]
         """
         self.edit_ids()
         try:
@@ -211,7 +213,7 @@ class KryPiShell(cmd.Cmd):
     """
     def do_delete(self, arg):
         """ Delete password entry
-            delete [id] or delete [title]
+            Example: delete [id] or delete [title]
         """
         self.edit_ids()
         try:
@@ -239,9 +241,10 @@ class KryPiShell(cmd.Cmd):
     Parameters: str/int : arg -> ID or Title of entry's password to be copied into clipboard.
     """
     def do_get(self,arg):
-        """ Copy password to clipboard without showing it"""
+        """ Copy password to clipboard without showing it
+        Example: get [id] or get [title]
+        """
         self.edit_ids()
-        print(self.IDs)
         if arg in self.Titles or int(arg) in self.IDs:  
             try:
                 id = int(arg)
@@ -260,7 +263,9 @@ class KryPiShell(cmd.Cmd):
     Parameters: None
     """
     def do_end(self, arg):
-        """Exit KryPi"""
+        """Exit KryPi
+        Example: end
+        """
         print("Exiting KryPi...")
         return True
     

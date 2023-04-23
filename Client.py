@@ -235,10 +235,7 @@ def DefaultLogin():
             if int(choice) == 1:
                 message = Face_login(username)
             if int(choice) == 2:
-                while True:
-                    totp_code = input("Insert TOTP code: ")
-                    if totp
-            
+                totp_code = input("Insert TOTP code: ")
                 client.send_data_string_AES(totp_code)
 
             message = client.receive_data_string_AES()
