@@ -1,10 +1,18 @@
 
 # Online databáze přístupových údajů
+Studentský projekt do předmětu Kryptografie (MPC/KRY).
+
 Autoři: Jakub Asszonyi, Matěj Vopálka, Vojta Hynek, Vojtěch Váňa
 
 
 # Popis projektu.
-bla bla bla
+Cloudová databáze přistupových údajů. Zabezpečená databáze, která uchovává uživatelské přistupové údaje. Projekt obsahuje tři strany a to Serverovou stranu, klienta který se připojuje na server a certifikační autoritu, která ověřuje důvěryhodnost serveru a klienta. 
+
+Jsou implementované tři metody autentizace. 1. Jméno a heslo, 2. TOTP, 3. Rozpoznání obličeje, multifaktorově. 
+
+Přístup k uživatelským datům má jen samotný uživatel, pomocí fráze kterou si také uživatel zadá při přihlašování.
+Aplikace také umožňuje obnovení přístupu do databáze uživatelských dat, nebo-li pomocí obnovovacího klíče který se uživateli vygeneruje při registraci.
+
 
 
 # Instalace projektu
@@ -109,3 +117,25 @@ Po dokončení uprav uknočíte relaci příkazem
 KryPi> end
 ```
 čímž se vaše data uloží na server. (Pokud někdy v průběhu úprav či registrace dojte k chybě, či přerušení spojení nebudou provedeny žádné změny.)
+
+### Testovací uživatel
+Je tam vytvořen testovací uživatel:
+
+Uživatelské jméno: Jakub
+
+Email: jakub@gmail.com
+
+Heslo použité pro všechny přihlášení a podpisy: 123456789
+
+Klíč pro obnovu přístupu do databáze: O9u44GVb9LtkLyJScnxI
+
+TOTP seed: 4ZKMUOKRXPRCLTEK
+
+POZOR: Při stažení z GitHub repozitáře nebudou fungovat některé podpisy a klíče, proto je zapotřebí je smazat a přegenerovat.
+Nebo lze použít námi dodaný kód ve kterém by mělo vše fungovat.
+
+
+
+
+
+
