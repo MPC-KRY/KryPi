@@ -173,8 +173,10 @@ def Register():
     print("Creating certificate")
     vk = create_certificate(password, username)
     client.send_data_string_AES(vk.decode())
-
-    choice = input("Do you want to setup 1. TOTP or 2.Face")
+    while True:
+        choice = input("Do you want to setup 1. TOTP or 2.Face: ")
+        if int(choice) == 1 or int(choice) == 2:
+            break
     client.send_data_string_AES(choice)
     choice = int(choice)
     if choice == 1:
@@ -233,7 +235,10 @@ def DefaultLogin():
             if int(choice) == 1:
                 message = Face_login(username)
             if int(choice) == 2:
-                totp_code = input("Insert TOTP code: ")
+                while True:
+                    totp_code = input("Insert TOTP code: ")
+                    if totp
+            
                 client.send_data_string_AES(totp_code)
 
             message = client.receive_data_string_AES()
