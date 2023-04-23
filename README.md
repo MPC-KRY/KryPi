@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 ## Instalace podpisové autority
 Je zapotřebí soubor CA.py. 
-Je využit jako knihovna pro ověřování v klientské i serverové části a zároveň slouží jak nástroj pro vygenerování klíčů, podepsání souborů a ověření podpisů pro kryptografické protokolu DSA (Digital Signature Algorithm).
+Je využit jako knihovna pro ověřování v klientské i serverové části a zároveň slouží jak nástroj pro vygenerování klíčů, podepisování souborů a ověření podpisů pro kryptografický protokol DSA (Digital Signature Algorithm).
 Podpisová autorita může být samostatná entita, nebo může být součástí serveru, kdy uživatel věří vývojáři aplikace. Při obou případech se podpisová autorita nasadí příkazem
 ```sh
 python3 CA.py −−generate
@@ -29,9 +29,9 @@ Je zapotřebí vygenerovat pár klíčů pro RSA příkazem
 ```sh
 python3 RSA_server.py
 ```
-jehož výstupem jsou soubory `private_key_RSA.pem` sloužící jako soukromý klíč DSA a `public_key_RSA.pem` sloužící jako veřejný klíč DSA
+jehož výstupem jsou soubory `private_key_RSA.pem` sloužící jako soukromý klíč RSA a `public_key_RSA.pem` sloužící jako veřejný klíč RSA
 
-Následně je třeba podepsat veřejný klíč RSA podpisovou autoritou.
+Následně je třeba podepsat veřejný klíč DSA podpisovou autoritou.
 Podpis je realizován příkazem
 ```sh
 python3 CA.py −−sign public_key_RSA.pem
@@ -51,8 +51,8 @@ Pro spuštění serveru proveďte tento příkaz:
 ```sh
 python3 Server_main.py
 ```
-Toto zapne server. V terminálu se vypisuje pár základních informací o akcích které momentálně zpracovává.
-Server umožňuje připojení více klientů současně, takže je tam také vypsáno klient a uživatel se připojit k serveru.
+Tento příkaz spustí server. V terminálu se vypisuje pár základních informací o akcích které momentálně zpracovává.
+Server umožňuje připojení více klientů současně, takže se vypíše adresa a port klienta, který se připojil.
 
 
 ## Spuštění klienta
@@ -109,21 +109,3 @@ Po dokončení uprav uknočíte relaci příkazem
 KryPi> end
 ```
 čímž se vaše data uloží na server. (Pokud někdy v průběhu úprav či registrace dojte k chybě, či přerušení spojení nebudou provedeny žádné změny.)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
